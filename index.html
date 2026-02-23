@@ -2,17 +2,14 @@
 <html lang="zh-CN" class="nebula-enterprise">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Nebula AI Incubator Enterprise Edition - The ultimate educational agent generator powered by DeepSeek MoE.">
-<meta name="author" content="Nebula Team (Sam Su, DeepSeek R1, Gemini 3 Pro)">
+<meta name="author" content="Nebula Team (Sam Su, DeepSeek R1)">
 <meta name="version" content="15.1.0-Fix">
 <meta name="theme-color" content="#000000">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
 <title>Nebula AI Agent</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
 /*
@@ -598,8 +595,6 @@ padding: 30px;
 display: none;
 flex-direction: column;
 gap: 20px;
-max-height: 80vh; 
-    overflow-y: auto; 
 z-index: var(--z-settings);
 box-shadow: var(--shadow-xl);
 animation: slideUp 0.3s var(--anim-cubic);
@@ -671,31 +666,83 @@ border-color: var(--mac-accent);
 background: rgba(255,255,255,0.08);
 }
 </style>
+<!-- Responsive improvements for mobile -->
+<style>
+/* Allow scrolling on small screens and make sidebar toggleable */
+@media (max-width: 900px) {
+    html, body {
+        height: auto;
+        overflow: auto; /* allow page scroll on mobile */
+    }
+    body {
+        position: relative; /* let page flow normally on mobile */
+        flex-direction: column;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-height: 70vh;
+        overflow-y: auto;
+        transform: translateY(0);
+        transition: transform 0.35s ease;
+        z-index: 10000;
+    }
+    .sidebar.collapsed {
+        transform: translateY(-105%); /* hide off-canvas */
+    }
+    #app {
+        display: block;
+        margin-top: 0;
+    }
+    /* ensure main content (preview) sits below the sidebar */
+    .preview-area, #previewFrame {
+        margin-top: 12px;
+        height: calc(100vh - 80px) !important;
+    }
+    /* mobile toggle button */
+    .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 10px;
+        right: 12px;
+        z-index: 10001;
+        background: var(--mac-card);
+        color: var(--mac-text);
+        border: 1px solid var(--mac-border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 18px;
+        box-shadow: var(--shadow-sm);
+    }
+}
+</style>
 </head>
-<body><body>
-    <!-- 登录遮罩层 (默认显示) -->
-    <div id="login-layer" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:100000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(20px); transition:opacity 0.6s;">
-        <div class="login-panel" style="width:400px; background:rgba(30,30,30,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:60px 40px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5);">
-            <h2 style="margin-bottom:15px; letter-spacing:1px; font-weight:800; font-size:24px; color:white;">NEBULA SYSTEM</h2>
-            <p style="color:#888; font-size:12px; margin-bottom:30px; text-transform:uppercase; letter-spacing:1px;">Enterprise Access Gateway</p>
-            
-            <div class="field" style="margin-bottom:20px;">
-                <input type="password" id="sys-pwd" placeholder="Enter Access Token" style="width:100%; padding:15px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:white; text-align:center; font-size:16px; outline:none;">
-            </div>
-            
-            <button class="btn-primary" onclick="SystemLogic.attemptLogin()" style="width:100%; padding:15px; font-size:14px; font-weight:bold; border-radius:12px;">Connect to Terminal</button>
-        
-    </div>
+<body>
+<!-- Mobile menu toggle -->
+<button id="mobileToggle" class="mobile-toggle" onclick="control('collapse')" aria-label="Toggle menu" style="display:none">☰</button>
+<div id="login-layer">
+<div class="login-panel">
+<h2 style="margin-bottom:15px; letter-spacing:1px; font-weight:800;">NEBULA SYSTEM</h2>
+<p style="color:#888; font-size:12px; margin-bottom:30px; text-transform:uppercase; letter-spacing:1px;">Enterprise Access Gateway</p>
 
+<div class="field">
+<input type="password" id="sys-pwd" placeholder="Enter Access Token (Default: admin)" style="text-align:center; padding:15px; font-size:16px;">
+</div>
+
+<button class="btn-primary" onclick="SystemLogic.attemptLogin()" style="margin-top:15px;">Connect to Terminal</button>
+</div>
 </div>
 <div id="app" style="display: flex; width: 100%;">
 
 <aside class="sidebar" id="mainSidebar">
 <div class="traffic-lights">
-<!-- 修改后：增加了 id -->
-<div id="btn-light-red" class="dot red" onclick="control('clear')" ondblclick="control('restore')" title="单击清空，双击恢复"></div>
-<div id="btn-light-yellow" class="dot yellow" onclick="control('collapse')" title="折叠边栏"></div>
-<div id="btn-light-green" class="dot green" onclick="control('full')" title="全屏预览"></div></div>
+<div class="dot red" onclick="control('clear')" ondblclick="control('restore')" title="单击清空，双击恢复"></div>
+
+<div class="dot yellow" onclick="control('collapse')" title="折叠边栏"></div>
+<div class="dot green" onclick="control('full')" title="全屏预览"></div>
+</div>
 
 <div class="sidebar-content">
 <h2>NEBULA AI Agent</h2>
@@ -722,7 +769,7 @@ background: rgba(255,255,255,0.08);
 </div>
 
 <div class="field">
-<label id="lbl-domain">领域识别</label>
+<label>领域识别</label>
 <div id="domainTag" style="color:var(--mac-accent); font-weight:600; font-size:12px; padding:5px 0;">等待输入...</div>
 </div>
 
@@ -747,18 +794,87 @@ background: rgba(255,255,255,0.08);
 <div id="historyList"></div>
 </div>
 </div>
+<script>
+// Mobile-friendly behavior: show toggle and collapse sidebar by default on small screens
+(function(){
+    function update() {
+        try {
+            var btn = document.getElementById('mobileToggle');
+            var side = document.getElementById('mainSidebar');
+            if(window.innerWidth <= 900) {
+                if(btn) btn.style.display = 'block';
+                if(side && !side.classList.contains('collapsed')) side.classList.add('collapsed');
+            } else {
+                if(btn) btn.style.display = 'none';
+                if(side && side.classList.contains('collapsed')) side.classList.remove('collapsed');
+            }
+        } catch(e) { console.error(e); }
+    }
+    window.addEventListener('resize', update);
+    window.addEventListener('load', update);
+})();
+</script>
 </aside>
+<style>
+/* Additional mobile layout fixes: make preview iframe full-width and responsive */
+@media (max-width: 900px) {
+    /* workspace occupies full width */
+    main.workspace {
+        display: block;
+        width: 100%;
+        padding: 12px 12px 24px 12px;
+        box-sizing: border-box;
+    }
+
+    /* canvas container should be full width and allow vertical growth */
+    #canvas-container {
+        width: 100%;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    /* make iframe take available width and a tall height for mobile */
+    #previewFrame {
+        width: 100% !important;
+        min-width: 100% !important;
+        height: calc(100vh - 160px) !important; /* leave room for header and controls */
+        border: none;
+        display: block;
+    }
+
+    /* inspector should move below and expand */
+    aside.inspector {
+        width: 100% !important;
+        position: relative !important;
+        order: 3;
+        margin-top: 12px;
+    }
+
+    /* ensure sidebar overlay doesn't push content when visible */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        max-height: 70vh;
+    }
+
+    /* top bar stays visible and not overlapping */
+    .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 5000;
+        background: transparent;
+    }
+}
+</style>
 <main class="workspace">
 <div class="loader" id="globalLoader">
 <div class="spin"></div>
-<!-- 修改后 (英文 + id) -->
-<p id="lbl-loader-text" style="margin-top:15px; color:var(--mac-accent); font-weight:600;">Organizing Expert Team...</p>
+<p style="margin-top:15px; color:var(--mac-accent); font-weight:600;">正在组织教育专家团队...</p>
 </div>
 
 <nav class="top-bar">
-<!-- 修改后：增加了 id="lbl-topbar" -->
-<span id="lbl-topbar" style="font-size:13px; font-weight:600; opacity:0.8;">NEBULA 交互预览终端</span>
-  
+<span style="font-size:13px; font-weight:600; opacity:0.8;">NEBULA 交互预览终端</span>
 </nav>
 
 <div id="canvas-container">
@@ -802,13 +918,11 @@ background: rgba(255,255,255,0.08);
 </div>
 <div class="gear-btn" onclick="toggleSettings()">⚙️</div>
 <div id="settings-menu">
-<!-- 修改后 -->
-<h3 id="lbl-set-title" style="margin-bottom:10px;">系统内核设置</h3>
+<h3 style="margin-bottom:10px;">系统内核设置</h3>
+
 <div class="field">
-<!-- 修改后 -->
-<label id="lbl-set-theme">视觉主题</label>
-<!-- 修改后 -->
-<select id="sel-theme" onchange="document.body.className = this.value === 'light' ? 'light-mode' : ''">
+<label>视觉主题</label>
+<select onchange="document.body.className = this.value === 'light' ? 'light-mode' : ''">
 <option value="dark">深邃灰 (Mac Dark)</option>
 <option value="light">纯净白 (Mac Light)</option>
 </select>
@@ -835,24 +949,22 @@ background: rgba(255,255,255,0.08);
     </select>
     
     <!-- 隐藏的输入框：用于输入稀有语言代码 -->
-    <input type="text" id="lang-custom-iso" placeholder="输入 ISO 代码 (如: vi, th, it, ko)" 
+    <input type="text" id="lang-custom-iso" placeholder="输入 ISO 代码 (如: vi, th, it, ko)"
            style="display:none; margin-top:10px; border:1px solid var(--mac-accent);"
            onblur="LinguaForce.processSwitch(this.value)">
     
-   <p id="lbl-lang-note" style="font-size:10px; color:#666; margin-top:8px;">
-    * "Content Only" 模式下界面保持英语，但生成的课程为目标语言。
- </p>
+    <p style="font-size:10px; color:#666; margin-top:8px;">
+        * "Content Only" 模式下界面保持英语，但生成的课程为目标语言。
+    </p>
 </div>
 
 
 
 <div style="border-top:1px solid var(--mac-border); padding-top:10px; font-size:11px; color:#888; line-height:1.4;">
-<div id="lbl-set-intro">
 <strong>NEBULA AI Agent 学习助手介绍</strong><br>
 本系统采用团队建模框架，通过教育专家、建模大师与代码架构师的深度融合，为用户一键孵化具备高交互性、学术深度和美感并存的定制化学习组件。
 <br><br>
-<div id="lbl-set-dev">
-<strong>开发者介绍</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su
+<strong>开发者介绍</strong><br>DeepSeek R1 / Sam Su
 </div>
 <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--mac-border); display:flex; align-items:center; gap:10px;">
     <button class="secondary-btn" onclick="clearHistory()" id="btn-clear-hist" style="margin-right:auto; color:var(--mac-danger); font-size:12px; border:none; background:none; cursor:pointer;">
@@ -870,11 +982,11 @@ background: rgba(255,255,255,0.08);
 */
 // [修改五] 企业级全局配置
 const ENTERPRISE_CONFIG = {
-    // 留空！因为 Key 已经在 Cloudflare 上了，前端不需要了
-    GLOBAL_KEY: "", 
+    // 前端统一走本地后端
+    GLOBAL_KEY: "",
     
-    // 填入您刚才在 Cloudflare 获得的那个 URL
-    API_URL: "https://api.nebulavessel.com", 
+    // 本地 API（无需 VPN）
+    API_URL: "http://127.0.0.1:5000/api",
     
     TIMEOUT: 60000,
     MAX_RETRIES: 3
@@ -887,15 +999,13 @@ const ENTERPRISE_CONFIG = {
 // --- 纯净版语言引擎 (无外部API依赖) ---
 // --- 增强版多语言引擎 (覆盖 UI + 内容 + 下拉菜单) ---
 // --- 增强版多语言引擎 (覆盖 UI + 内容 + 下拉菜单) ---
-/* =============================================================================
-   [修正版] LinguaForce 语言引擎
-   ============================================================================= */
 const LinguaForce = {
     status: { code: 'zh', name: 'Chinese' },
-    // 1. 全局字典
+    
+    // 1. 全局字典 (扩展了下拉菜单、右侧面板、占位符)
     dict: {
         'zh': {
-            // ... (原有内容)
+            // 侧边栏
             title: 'NEBULA AI Agent',
             topicLabel: '学习主题',
             topicPlace: '输入知识点，如：拉格朗日乘子法',
@@ -904,48 +1014,29 @@ const LinguaForce = {
             diffLabel: '难度阶梯',
             modelLabel: '模型选择',
             startBtn: '开始建模生成',
-            exportBtn: '📤 导出文件',
+            exportBtn: '📤 导出独立文件',
             histLabel: '历史孵化记录',
-            diffOpts: ['入门级 (科普/趣味/类比)', '进阶级 (理论/推导/深度)', '专家级 (建模/底层/争议研究)'],
-            domainLabel: '领域识别',
-            modelOpt1: 'DeepSeek-V3 (极速 & 稳定 - 推荐)',
-            modelOpt2: 'DeepSeek-R1 (深度推理 - 较慢)',
-            langNote: '* "Content Only" 模式下界面保持英语，但生成的课程为目标语言。',
-            compileText: '正在编译架构...',
+            // 下拉菜单 - 难度
+            diffOpts: [
+                '入门级 (科普/趣味/类比)',
+                '进阶级 (理论/推导/深度)',
+                '专家级 (建模/底层/争议研究)'
+            ],
+            // 右侧面板
             inspTitle: '质量监测面板 (AI Real Audit)',
             met1: '学术稳定性',
             met2: '交互深度',
             met3: '教学趣味性',
             fbTitle: 'AI 语义深度评估 (反思评价)',
             fbPlace: '生成 Agent 后，在此处提交您的学习感悟。AI 团队将评估您的理解深度。',
-            
-            // [重点修改] 状态文字
-            domainWait: '等待输入...',  // 对应初始状态
+            // 加载与状态
+            domainWait: '等待输入...',
             analyzing: '正在分析归类...',
             loading: '正在组织教育专家团队...',
-            
-            // [新增] 清空提示语
-            clearedText: '已清空 (双击红灯恢复)',
-
-            settingTitle: '系统设置',
-            themeLabel: '主题',
-            langLabel: '🌐 Language / 语言',
-            topbar: 'NEBULA 交互预览终端',
-            tipRed: '单击清空，双击恢复',
-            tipYellow: '折叠边栏',
-            tipGreen: '全屏预览',
-            themeDark: '深邃灰 (Mac Dark)',
-            themeLight: '纯净白 (Mac Light)',
-            btnClear: '🗑 清空历史',
-            btnSave: '保存并关闭',
-            introHtml: ` <strong>NEBULA AI Agent 学习助手介绍</strong><br>NEBULA AI Agent 是一款在“枯燥课本”与“漫无目的AI搜索”之间架起桥梁的学习伙伴。它通过独创的团队建模框架——融合教育专家、建模大师与代码架构师的深度协同，为用户一键孵化出兼具高交互性、学术深度与美学质感的定制化学习组件。
-<br>
-你只需输入学习主题、身份角色与难度阶梯，系统便会实时生成一个完整的游戏化HTML演示程序。整个体验由剧情引导、分章节解锁、多样化测验（单选/多选/判断）及即时解析构成，让学习不再是单向灌输，而是一场主动探索的创造之旅。用户无需编写任何代码，却能在点击、选择与反馈中感受“我在创造，而不仅是消费”的成就感。<br>
-
-NEBULA的内核融合了微观经济学中的激励设计——通过得分、解锁与引导解析，降低学习门槛，提升即时回报。内置的AI Tutor悬浮球支持多轮深度追问，实现真正的个性化辅导。目前系统已支持中、英、法等8种语言界面与内容生成，让全球学习者都能以母语深度探索知识。
-<br>
-我们相信，最好的学习不是在信息海洋中盲目漂泊，而是在精心设计的交互中主动建构认知。NEBULA正是为此而生——在死板固化与漫无目的之间，为你开辟一条通往创造与理解的新路径。 `,
-            devHtml: '<strong>开发者介绍</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
+            // 设置菜单
+            settingTitle: '系统内核设置',
+            themeLabel: '视觉主题',
+            langLabel: '🌐 Language / 语言'
         },
         'en': {
             title: 'NEBULA AI Agent',
@@ -956,353 +1047,29 @@ NEBULA的内核融合了微观经济学中的激励设计——通过得分、�
             diffLabel: 'Difficulty Level',
             modelLabel: 'Model Selection',
             startBtn: 'Generate Agent',
-            exportBtn: '📤 Export Document',
+            exportBtn: '📤 Export Standalone',
             histLabel: 'History',
-            diffOpts: ['Beginner (Intro/Fun/Analogy)', 'Advanced (Theory/Derivation)', 'Expert (Modeling/Deep Research)'],
-            domainLabel: 'Domain Recognition',
-            modelOpt1: 'DeepSeek-V3 (Fast & Stable - Recommended)',
-            modelOpt2: 'DeepSeek-R1 (Deep Reasoning - Slower)',
-            langNote: '* In "Content Only" mode, UI remains English, but generated content targets the selected language.',
-            compileText: 'Compiling Architecture...',
+            diffOpts: [
+                'Beginner (Intro/Fun/Analogy)',
+                'Advanced (Theory/Derivation)',
+                'Expert (Modeling/Deep Research)'
+            ],
             inspTitle: 'Quality Inspector (AI Audit)',
             met1: 'Academic Stability',
             met2: 'Interaction Depth',
             met3: 'Edu-Entertainment',
             fbTitle: 'AI Semantic Assessment (Reflection)',
             fbPlace: 'After generation, submit your reflection here. AI will evaluate your depth of understanding.',
-            
-            // [重点修改] 状态文字
-            domainWait: 'Waiting for Input...',
+            domainWait: 'Waiting...',
             analyzing: 'Analyzing...',
             loading: 'Organizing Expert Team...',
-
-            // [新增] 清空提示语
-            clearedText: 'Cleared (Double-click red light to restore)',
-
             settingTitle: 'System Kernel Settings',
             themeLabel: 'Visual Theme',
-            langLabel: '🌐 Language',
-            topbar: 'NEBULA Preview Terminal',
-            tipRed: 'Click to Clear, DblClick to Restore',
-            tipYellow: 'Collapse Sidebar',
-            tipGreen: 'Fullscreen Preview',
-            themeDark: 'Deep Gray (Mac Dark)',
-            themeLight: 'Pure White (Mac Light)',
-            btnClear: '🗑 Clear History',
-            btnSave: 'Save & Close',
-            introHtml: ` <strong>About NEBULA AI Agent</strong><br>NEBULA AI Agent is a learning companion that bridges the gap between rigid textbooks and aimless AI searches. Through its unique team-modeling framework—integrating education experts, modeling masters, and code architects—it incubates customized learning components with high interactivity, academic depth, and aesthetic quality at one click.
-<br>
-You simply input your learning topic, role, and difficulty level, and the system generates a complete gamified HTML demo in real time. The experience unfolds through narrative guidance, chapter-by-chapter unlocking, diverse quizzes (single/multiple choice, true/false), and instant feedback—transforming learning from passive absorption into an active journey of creation. No coding required, yet you feel the thrill of "creating, not just consuming."<br>
-
-NEBULA's core incorporates incentive design from microeconomics: scoring, unlocking, and guided feedback lower the barrier to learning while raising immediate rewards. An embedded AI Tutor chatbot enables deep, multi-turn dialogue for truly personalized guidance. Currently, the system supports interface and content generation in eight languages, including Chinese, English, French, Japanese, and more, empowering learners worldwide to explore knowledge deeply in their native tongues.
-<br>
-We believe the best learning doesn't drift aimlessly in an ocean of information—it actively constructs understanding through well-crafted interaction. NEBULA is built for this: forging a new path to creation and comprehension, right between the rigid and the random.
-` ,
-            devHtml: '<strong>Credits</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-              'fr': {
-            title: 'Agent IA NEBULA',
-            topicLabel: 'Sujet d\'apprentissage',
-            topicPlace: 'Ex: Multiplicateur de Lagrange',
-            roleLabel: 'Votre Rôle / Objectif',
-            rolePlace: 'Ex: Exportateur cherchant des clients',
-            diffLabel: 'Niveau de Difficulté',
-            modelLabel: 'Sélection du Modèle',
-            startBtn: 'Générer l\'Agent',
-            exportBtn: '📤 Exporter',
-            histLabel: 'Historique',
-            diffOpts: ['Débutant (Intro/Fun)', 'Avancé (Théorie)', 'Expert (Recherche)'],
-            domainLabel: 'Reconnaissance de Domaine',
-            modelOpt1: 'DeepSeek-V3 (Rapide & Stable)',
-            modelOpt2: 'DeepSeek-R1 (Raisonnement Profond)',
-            langNote: '* En mode "Content Only", l\'interface reste en anglais.',
-            compileText: 'Compilation de l\'architecture...',
-            inspTitle: 'Inspecteur de Qualité',
-            met1: 'Stabilité Académique',
-            met2: 'Profondeur',
-            met3: 'Edu-Divertissement',
-            fbTitle: 'Évaluation Sémantique',
-            fbPlace: 'Soumettez votre réflexion ici...',
-            domainWait: 'En attente...',
-            analyzing: 'Analyse en cours...',
-            loading: 'Organisation de l\'équipe d\'experts...',
-            clearedText: 'Effacé (Double-cliquez pour restaurer)',
-            settingTitle: 'Paramètres du Noyau',
-            themeLabel: 'Thème Visuel',
-            langLabel: '🌐 Langue',
-            topbar: 'Terminal de Prévisualisation NEBULA',
-            tipRed: 'Clic pour effacer',
-            tipYellow: 'Réduire',
-            tipGreen: 'Plein écran',
-            themeDark: 'Gris Profond (Mac Dark)',
-            themeLight: 'Blanc Pur (Mac Light)',
-            btnClear: '🗑 Effacer l\'historique',
-            btnSave: 'Enregistrer et Fermer',
-            introHtml: ` <strong>À propos de NEBULA</strong><br>NEBULA AI Agent est un compagnon d'apprentissage qui comble le fossé entre les manuels rigides et les recherches AI sans but. Grâce à son cadre unique de modélisation d'équipe—intégrant des experts en éducation, des maîtres en modélisation et des architectes de code—il génère en un clic des composants d'apprentissage sur mesure, alliant haute interactivité, profondeur académique et qualité esthétique.
-<br>
-Il vous suffit de saisir votre sujet, votre rôle et le niveau de difficulté, et le système produit en temps réel une démo HTML ludique et complète. L'expérience se déroule à travers un guidage narratif, un déverrouillage chapitre par chapitre, des quiz variés (QCM, vrai/faux) et des retours instantanés—transformant l'apprentissage d'une absorption passive en une quête active de création. Aucun codage requis, mais vous ressentez le plaisir de « créer, pas seulement consommer ».
-<br>
-Le cœur de NEBULA intègre la conception d'incitations issue de la microéconomie : scores, déverrouillages et feedbacks guidés abaissent les barrières tout en augmentant les récompenses immédiates. Un assistant AI intégré permet des dialogues approfondis pour un accompagnement véritablement personnalisé. Actuellement, le système prend en charge huit langues (dont le chinois, l'anglais, le français, le japonais), permettant aux apprenants du monde entier d'explorer les savoirs dans leur langue maternelle.<br>
-
-Nous croyons que le meilleur apprentissage ne dérive pas sans but dans un océan d'informations—il construit activement la compréhension grâce à des interactions bien conçues. NEBULA est conçu pour cela : tracer une nouvelle voie vers la création et la compréhension, juste entre le rigide et l'aléatoire.` ,
-            devHtml: '<strong>Crédits</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-        'ja': {
-            title: 'NEBULA AI エージェント',
-            topicLabel: '学習トピック',
-            topicPlace: '例：ラグランジュの未定乗数法',
-            roleLabel: 'あなたの役割 / 目標',
-            rolePlace: '例：顧客を探している輸出業者',
-            diffLabel: '難易度レベル',
-            modelLabel: 'モデル選択',
-            startBtn: 'エージェント生成',
-            exportBtn: '📤 エクスポート',
-            histLabel: '履歴',
-            diffOpts: ['初級 (入門/楽しさ)', '上級 (理論/導出)', '専門家 (研究/モデリング)'],
-            domainLabel: '領域認識',
-            modelOpt1: 'DeepSeek-V3 (高速 & 安定)',
-            modelOpt2: 'DeepSeek-R1 (深い推論 - 遅い)',
-            langNote: '* "Content Only" モードではUIは英語のままです。',
-            compileText: 'アーキテクチャをコンパイル中...',
-            inspTitle: '品質検査パネル (AI監査)',
-            met1: '学術的安定性',
-            met2: '対話の深さ',
-            met3: '教育エンタメ性',
-            fbTitle: 'AI 意味論的評価 (振り返り)',
-            fbPlace: '生成後、ここに感想を入力してください...',
-            domainWait: '入力待ち...',
-            analyzing: '分析中...',
-            loading: '専門家チームを編成中...',
-            clearedText: '消去済み (ダブルクリックで復元)',
-            settingTitle: 'システムカーネル設定',
-            themeLabel: 'ビジュアルテーマ',
-            langLabel: '🌐 言語',
-            topbar: 'NEBULA プレビュー端末',
-            tipRed: 'クリックで消去',
-            tipYellow: 'サイドバーを折りたたむ',
-            tipGreen: '全画面表示',
-            themeDark: 'ディープグレー (Mac Dark)',
-            themeLight: 'ピュアホワイト (Mac Light)',
-            btnClear: '🗑 履歴を消去',
-            btnSave: '保存して閉じる',
-            introHtml: ` <strong>NEBULA AI について</strong><br>NEBULA AI Agentは、硬直した教科書と目的のないAI検索のギャップを埋める学習パートナーです。教育専門家、モデリングマスター、コードアーキテクトを統合した独自のチームモデリングフレームワークにより、高度なインタラクティブ性、学術的深み、美学的品質を備えたカスタマイズ学習コンポーネントをワンクリックで生成します。
-<br>
-学習テーマ、役割、難易度を入力するだけで、システムは即座に完全なゲーム形式のHTMLデモを生成。ストーリーガイド、章ごとのアンロック、多様なクイズ（単一/複数選択、○×）、即時フィードバックを通じて、学習を受動的な吸収から能動的な創造の旅へと変えます。プログラミングは不要でありながら、「消費するだけでなく創造している」という喜びを感じられます。<br>
-
-NEBULAの核心にはミクロ経済学に基づくインセンティブ設計が組み込まれています。スコア、アンロック、ガイド付きフィードバックが学習のハードルを下げ、即時的な報酬を高めます。内蔵のAIチューターは多ターンの深い対話を可能にし、真にパーソナライズされた指導を実現します。現在、システムは中国語、英語、日本語など8言語のインターフェースとコンテンツ生成に対応し、世界中の学習者が母国語で深く知識を探求できるようにしています。
-<br>
-最良の学習とは、情報の海を漫然と漂うことではなく、緻密に設計された相互作用を通じて能率的に理解を構築することだと私たちは信じています。NEBULAはそのために生まれました——硬直と無目的の狭間で、創造と理解へと至る新たな道を切り開きます。` ,
-            devHtml: '<strong>開発者</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-              'ru': {
-            title: 'Агент ИИ NEBULA',
-            topicLabel: 'Тема обучения',
-            topicPlace: 'Напр., Метод множителей Лагранжа',
-            roleLabel: 'Ваша роль / Цель',
-            rolePlace: 'Напр., Экспортер ищет клиентов',
-            diffLabel: 'Уровень сложности',
-            modelLabel: 'Выбор модели',
-            startBtn: 'Создать агента',
-            exportBtn: '📤 Экспорт',
-            histLabel: 'История',
-            diffOpts: [
-                'Начинающий (Введение/Аналогия)',
-                'Продвинутый (Теория/Вывод)',
-                'Эксперт (Моделирование/Исследование)'
-            ],
-            domainLabel: 'Распознавание домена',
-            modelOpt1: 'DeepSeek-V3 (Быстрый и стабильный)',
-            modelOpt2: 'DeepSeek-R1 (Глубокое рассуждение)',
-            langNote: '* В режиме "Content Only" интерфейс остается на английском.',
-            compileText: 'Компиляция архитектуры...',
-            inspTitle: 'Инспектор качества (AI Аудит)',
-            met1: 'Академическая стабильность',
-            met2: 'Глубина взаимодействия',
-            met3: 'Обучение и развлечение',
-            fbTitle: 'Семантическая оценка ИИ',
-            fbPlace: 'После генерации отправьте свой отзыв здесь...',
-            domainWait: 'Ожидание ввода...',
-            analyzing: 'Анализ...',
-            loading: 'Организация группы экспертов...',
-            clearedText: 'Очищено (Дважды щелкните красный свет для восстановления)',
-            settingTitle: 'Настройки ядра системы',
-            themeLabel: 'Визуальная тема',
-            langLabel: '🌐 Язык / Language',
-            topbar: 'Терминал предпросмотра NEBULA',
-            tipRed: 'Нажмите, чтобы очистить, дважды, чтобы восстановить',
-            tipYellow: 'Свернуть боковую панель',
-            tipGreen: 'Полноэкранный режим',
-            themeDark: 'Глубокий серый (Mac Dark)',
-            themeLight: 'Чистый белый (Mac Light)',
-            btnClear: '🗑 Очистить историю',
-            btnSave: 'Сохранить и закрыть',
-            introHtml: ` <strong>О системе NEBULA AI</strong><br>NEBULA AI Agent — это учебный помощник, который устраняет разрыв между скучными учебниками и бесцельным поиском в AI. Благодаря уникальной системе командного моделирования — объединяющей экспертов в образовании, мастеров моделирования и архитекторов кода — он в один клик создает индивидуальные учебные компоненты с высокой интерактивностью, академической глубиной и эстетическим качеством.
-<br>
-Вам нужно лишь ввести тему, свою роль и уровень сложности, и система в реальном времени генерирует полноценный игровой HTML-демо-урок. Процесс включает сюжетное сопровождение, поэтапное открытие глав, разнообразные тесты (один/множественный выбор, верно/неверно) и мгновенную обратную связь — превращая обучение из пассивного усвоения в активное творчество. Без программирования вы ощущаете радость «созидания, а не простого потребления».
-<br>
-В основе NEBULA лежит микроэкономический подход к стимулированию: баллы, открытие уровней и направляющие подсказки снижают порог входа и повышают немедленную отдачу. Встроенный AI-тьютор поддерживает многоходовые диалоги для подлинно персонализированного обучения. Система уже работает на восьми языках (включая русский, английский, китайский, японский), позволяя учащимся по всему миру осваивать знания на родном языке.
-<br>
-Мы убеждены: лучшее обучение — не бесцельное блуждание в океане информации, а активное построение понимания через продуманное взаимодействие. NEBULA создан именно для этого — проложить путь к творчеству и пониманию между жёсткостью и хаосом.` ,
-            devHtml: '<strong>Разработчики</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-        'es': {
-            title: 'Agente de IA NEBULA',
-            topicLabel: 'Tema de aprendizaje',
-            topicPlace: 'Ej. Multiplicadores de Lagrange',
-            roleLabel: 'Tu Rol / Objetivo',
-            rolePlace: 'Ej. Exportador buscando clientes',
-            diffLabel: 'Nivel de Dificultad',
-            modelLabel: 'Selección de Modelo',
-            startBtn: 'Generar Agente',
-            exportBtn: '📤 Exportar',
-            histLabel: 'Historial',
-            diffOpts: [
-                'Principiante (Intro/Divertido)',
-                'Avanzado (Teoría/Derivación)',
-                'Experto (Investigación Profunda)'
-            ],
-            domainLabel: 'Reconocimiento de Dominio',
-            modelOpt1: 'DeepSeek-V3 (Rápido y Estable)',
-            modelOpt2: 'DeepSeek-R1 (Razonamiento Profundo)',
-            langNote: '* En modo "Content Only", la interfaz permanece en inglés.',
-            compileText: 'Compilando arquitectura...',
-            inspTitle: 'Inspector de Calidad (Auditoría IA)',
-            met1: 'Estabilidad Académica',
-            met2: 'Profundidad de Interacción',
-            met3: 'Edu-Entretenimiento',
-            fbTitle: 'Evaluación Semántica de IA',
-            fbPlace: 'Después de generar, envía tu reflexión aquí...',
-            domainWait: 'Esperando entrada...',
-            analyzing: 'Analizando...',
-            loading: 'Organizando equipo de expertos...',
-            clearedText: 'Borrado (Doble clic luz roja para restaurar)',
-            settingTitle: 'Configuración del Núcleo',
-            themeLabel: 'Tema Visual',
-            langLabel: '🌐 Idioma / Language',
-            topbar: 'Terminal de Vista Previa NEBULA',
-            tipRed: 'Clic para borrar, Doble clic para restaurar',
-            tipYellow: 'Colapsar barra lateral',
-            tipGreen: 'Pantalla completa',
-            themeDark: 'Gris Profundo (Mac Dark)',
-            themeLight: 'Blanco Puro (Mac Light)',
-            btnClear: '🗑 Borrar Historial',
-            btnSave: 'Guardar y Cerrar',
-            introHtml: ` <strong>Acerca de NEBULA AI</strong><br>NEBULA AI Agent es un compañero de aprendizaje que cierra la brecha entre los libros de texto rígidos y las búsquedas sin rumbo con IA. Mediante su marco único de modelado en equipo —que integra expertos en educación, maestros de modelado y arquitectos de código— genera con un clic componentes de aprendizaje personalizados de alta interactividad, profundidad académica y calidad estética.
-<br>
-Solo tienes que introducir tu tema, rol y nivel de dificultad, y el sistema produce en tiempo real una demo HTML gamificada completa. La experiencia se despliega con una narrativa guiada, desbloqueo por capítulos, diversos cuestionarios (opción simple/múltiple, verdadero/falso) y retroalimentación instantánea, transformando el aprendizaje de absorción pasiva en una aventura activa de creación. Sin necesidad de programar, sientes la emoción de «crear, no solo consumir».<br>
-
-El núcleo de NEBULA incorpora el diseño de incentivos de la microeconomía: puntuaciones, desbloqueos y retroalimentación guiada reducen las barreras de entrada mientras aumentan las recompensas inmediatas. Un tutor de IA integrado permite diálogos profundos y multidireccionales para una orientación verdaderamente personalizada. Actualmente, el sistema admite ocho idiomas (incluyendo español, inglés, chino, japonés), permitiendo a estudiantes de todo el mundo explorar el conocimiento en su lengua materna.
-<br>
-Creemos que el mejor aprendizaje no es vagar sin rumbo en un océano de información, sino construir activamente la comprensión mediante interacciones bien diseñadas. NEBULA está hecho para eso: forjar un nuevo camino hacia la creación y la comprensión, justo entre lo rígido y lo aleatorio.
-` ,
-            devHtml: '<strong>Créditos</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-        'ar': {
-            title: 'وكيل الذكاء الاصطناعي NEBULA',
-            topicLabel: 'موضوع التعلم',
-            topicPlace: 'مثال: مضاعفات لاغرانج',
-            roleLabel: 'دورك / هدفك',
-            rolePlace: 'مثال: مصدر يبحث عن عملاء',
-            diffLabel: 'مستوى الصعوبة',
-            modelLabel: 'اختيار النموذج',
-            startBtn: 'إنشاء الوكيل',
-            exportBtn: '📤 تصدير مستقل',
-            histLabel: 'التاريخ',
-            diffOpts: [
-                'مبتدئ (مقدمة/ممتع/تشبيه)',
-                'متقدم (نظرية/اشتقاق)',
-                'خبير (نمذجة/بحث عميق)'
-            ],
-            domainLabel: 'التعرف على المجال',
-            modelOpt1: 'DeepSeek-V3 (سريع ومستقر - موصى به)',
-            modelOpt2: 'DeepSeek-R1 (تفكير عميق - أبطأ)',
-            langNote: '* في وضع "المحتوى فقط"، تظل الواجهة باللغة الإنجليزية.',
-            compileText: 'جاري تجميع البنية...',
-            inspTitle: 'مفتش الجودة (تدقيق الذكاء الاصطناعي)',
-            met1: 'الاستقرار الأكاديمي',
-            met2: 'عمق التفاعل',
-            met3: 'التعليم الترفيهي',
-            fbTitle: 'التقييم الدلالي للذكاء الاصطناعي',
-            fbPlace: 'بعد الإنشاء، أرسل تأملك هنا. سيقوم الذكاء الاصطناعي بتقييم عمق فهمك.',
-            domainWait: 'بانتظار الإدخال...',
-            analyzing: 'جاري التحليل...',
-            loading: 'جاري تنظيم فريق الخبراء...',
-            clearedText: 'تم المسح (انقر نقرًا مزدوجًا على الضوء الأحمر للاستعادة)',
-            settingTitle: 'إعدادات نواة النظام',
-            themeLabel: 'المظهر المرئي',
-            langLabel: '🌐 اللغة / Language',
-            topbar: 'محطة معاينة NEBULA',
-            tipRed: 'انقر للمسح، انقر مرتين للاستعادة',
-            tipYellow: 'طي الشريط الجانبي',
-            tipGreen: 'معاينة ملء الشاشة',
-            themeDark: 'رمادي عميق (Mac Dark)',
-            themeLight: 'أبيض نقي (Mac Light)',
-            btnClear: '🗑 مسح السجل',
-            btnSave: 'حفظ وإغلاق',
-            introHtml: ` <strong>عن وكيل NEBULA</strong><br>NEBULA AI Agent هو رفيق تعليمي يسد الفجوة بين الكتب المدرسية الجامدة والبحث العشوائي بالذكاء الاصطناعي. من خلال إطار عمل فريد للنمذجة الجماعية—الذي يدمج خبراء التعليم، وأساتذة النمذجة، ومهندسي الكود—يقوم بنقرة واحدة باحتضان مكونات تعليمية مخصصة تجمع بين التفاعلية العالية، والعمق الأكاديمي، والجودة الجمالية.
-<br>
-كل ما عليك فعله هو إدخال موضوع التعلم، ودورك، ومستوى الصعوبة، ويقوم النظام فوراً بتوليد نموذج HTML تفاعلي كامل بنمط الألعاب. تمتد التجربة عبر توجيه سردي، وفتح فصول تلو الأخرى، واختبارات متنوعة (اختيار منفرد/متعدد، صواب/خطأ)، وتغذية راجعة فورية—محولاً التعلم من امتصاص سلبي إلى رحلة نشطة من الإبداع. لا حاجة للبرمجة، ومع ذلك تشعر بإثارة "الإبداع، وليس مجرد الاستهلاك".
-<br>
-يضم جوهر NEBULA تصميم الحوافز المستقى من الاقتصاد الجزئي: النقاط، وفتح المستويات، والتوجيه التفاعلي يخفضون حواجز التعلم بينما يرفعون المكافآت الفورية. يتيح المساعد المدمج (AI Tutor) إجراء محادثات معمقة متعددة الجولات لتوجيه شخصي حقيقي. يدعم النظام حالياً إنشاء الواجهة والمحتوى بثماني لغات (منها العربية، الإنجليزية، الصينية، اليابانية)، مما يمكّن المتعلمين حول العالم من استكشاف المعرفة بلغاتهم الأم.<br>
-
-نؤمن بأن أفضل تعلم ليس هو التيه بلا هدف في محيط المعلومات، بل البناء الفاعل للفهم من خلال تفاعل مصمم بعناية. NEBULA وُجد من أجل هذا: لشق طريق جديد نحو الإبداع والفهم، تماماً بين الجمود والعشوائية.
-` ,
-            devHtml: '<strong>المطورون</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-        'de': {
-            title: 'NEBULA KI-Agent',
-            topicLabel: 'Lernthema',
-            topicPlace: 'Z.B. Lagrange-Multiplikator',
-            roleLabel: 'Ihre Rolle / Ziel',
-            rolePlace: 'Z.B. Exporteur sucht Kunden',
-            diffLabel: 'Schwierigkeitsgrad',
-            modelLabel: 'Modellauswahl',
-            startBtn: 'Agent Generieren',
-            exportBtn: '📤 Exportieren',
-            histLabel: 'Verlauf',
-            diffOpts: [
-                'Anfänger (Einführung/Spaß)',
-                'Fortgeschritten (Theorie/Ableitung)',
-                'Experte (Modellierung/Forschung)'
-            ],
-            domainLabel: 'Bereichserkennung',
-            modelOpt1: 'DeepSeek-V3 (Schnell & Stabil)',
-            modelOpt2: 'DeepSeek-R1 (Tiefes Denken)',
-            langNote: '* Im "Content Only"-Modus bleibt die Benutzeroberfläche auf Englisch.',
-            compileText: 'Architektur wird kompiliert...',
-            inspTitle: 'Qualitätsinspektor (KI-Audit)',
-            met1: 'Akademische Stabilität',
-            met2: 'Interaktionstiefe',
-            met3: 'Edu-Entertainment',
-            fbTitle: 'Semantische Bewertung',
-            fbPlace: 'Senden Sie hier Ihre Reflexion...',
-            domainWait: 'Warte auf Eingabe...',
-            analyzing: 'Analysiere...',
-            loading: 'Expertenteam wird organisiert...',
-            clearedText: 'Gelöscht (Doppelklick auf rotes Licht zum Wiederherstellen)',
-            settingTitle: 'Systemkernel-Einstellungen',
-            themeLabel: 'Visuelles Thema',
-            langLabel: '🌐 Sprache / Language',
-            topbar: 'NEBULA Vorschau-Terminal',
-            tipRed: 'Klicken zum Löschen, Doppelklick zum Wiederherstellen',
-            tipYellow: 'Seitenleiste einklappen',
-            tipGreen: 'Vollbildvorschau',
-            themeDark: 'Tiefgrau (Mac Dark)',
-            themeLight: 'Reinweiß (Mac Light)',
-            btnClear: '🗑 Verlauf löschen',
-            btnSave: 'Speichern & Schließen',
-            introHtml: ` <strong>Über NEBULA AI Agent</strong><br>NEBULA AI Agent ist ein Lernbegleiter, der die Lücke zwischen starren Lehrbüchern und ziellosen KI-Suchen schließt. Durch sein einzigartiges Team-Modellierungs-Framework – das Bildungsexperten, Modellierungsmeister und Code-Architekten vereint – entwickelt er mit einem Klick maßgeschneiderte Lernkomponenten mit hoher Interaktivität, akademischer Tiefe und ästhetischer Qualität.
-<br>
-Sie geben einfach Ihr Thema, Ihre Rolle und den Schwierigkeitsgrad ein, und das System generiert in Echtzeit eine vollständige gamifizierte HTML-Demo. Die Erfahrung entfaltet sich durch narrative Führung, kapitelweises Freischalten, vielfältige Tests (Einzel-/Mehrfachauswahl, richtig/falsch) und sofortiges Feedback – und verwandelt Lernen von passiver Aufnahme in eine aktive Schöpfungsreise. Ohne Programmierkenntnisse spüren Sie die Freude am „Erschaffen, nicht nur Konsumieren“.
-<br>
-Der Kern von NEBULA integriert Anreizdesign aus der Mikroökonomie: Punkte, Freischaltungen und geführtes Feedback senken die Lernhürden und erhöhen die unmittelbare Belohnung. Ein eingebetteter KI-Tutor ermöglicht tiefgehende Mehrfachdialoge für eine wirklich personalisierte Betreuung. Aktuell unterstützt das System Oberflächen- und Inhaltsgenerierung in acht Sprachen (darunter Deutsch, Englisch, Chinesisch, Japanisch) und ermöglicht Lernenden weltweit, Wissen in ihrer Muttersprache zu erkunden.
-<br>
-Wir glauben, dass das beste Lernen nicht ziellos in einem Informationsozean treibt – es konstruiert aktiv Verständnis durch durchdachte Interaktion. NEBULA wurde dafür entwickelt: einen neuen Weg zu Kreation und Verständnis zu bahnen, genau zwischen dem Starren und dem Zufälligen.` ,
-            devHtml: '<strong>Credits</strong><br>Gemini 3 Pro / DeepSeek R1 / Sam Su'
-        },
-
-
+            langLabel: '🌐 Language'
+        }
+        // ... (其他语言如 fr, es 可以按需添加，默认回退到 en) ...
     },
+
     setLang: function(val) {
         const customInput = document.getElementById('lang-custom-iso');
         if(val === 'custom') {
@@ -1313,125 +1080,98 @@ Wir glauben, dass das beste Lernen nicht ziellos in einem Informationsozean trei
             this.processSwitch(val);
         }
     },
+
     processSwitch: function(code) {
+        // A. 获取语言全名 (用于 Prompt)
         try {
             const dn = new Intl.DisplayNames(['en'], { type: 'language' });
             this.status.name = dn.of(code) || code;
         } catch(e) { this.status.name = code; }
         this.status.code = code;
 
+        // B. 获取字典 (如果找不到对应语言，回退到英文 'en')
         const t = this.dict[code] || this.dict['en'];
-const safeSet = (id, text) => { 
-    const el = document.getElementById(id); 
-    if(el && text) el.innerText = text; // 只有当 text 有值时才更新
-    else if(el) console.warn(`Missing translation for ID: ${id}`);
-};
 
-        // 1. 基础 UI 更新
-        const h2 = document.querySelector('.sidebar h2');
-        if(h2) h2.innerText = t.title;
+        // C. 更新 DOM (静态文本)
+        const safeSet = (id, text) => {
+            const el = document.getElementById(id);
+            if(el) el.innerText = text;
+        };
+        
+        // 更新侧边栏
+        document.querySelector('.sidebar h2').innerText = t.title;
+        // 注意：这里需要配合第一步添加的 ID
         safeSet('lbl-diff', t.diffLabel);
         safeSet('lbl-model', t.modelLabel);
         safeSet('lbl-history', t.histLabel);
-        safeSet('lbl-domain', t.domainLabel);
-
+        
+        // 更新 Input Placeholder 和 Label
+        // (这里为了简化，我们直接找元素，你也可以给 input 加 ID 优化)
         const inputs = document.querySelectorAll('.sidebar input[type="text"]');
-        if(inputs[0]) { if(inputs[0].previousElementSibling) inputs[0].previousElementSibling.innerText = t.topicLabel; inputs[0].placeholder = t.topicPlace; }
-        if(inputs[1]) { if(inputs[1].previousElementSibling) inputs[1].previousElementSibling.innerText = t.roleLabel; inputs[1].placeholder = t.rolePlace; }
+        if(inputs[0]) {
+            inputs[0].previousElementSibling.innerText = t.topicLabel;
+            inputs[0].placeholder = t.topicPlace;
+        }
+        if(inputs[1]) {
+            inputs[1].previousElementSibling.innerText = t.roleLabel;
+            inputs[1].placeholder = t.rolePlace;
+        }
 
+        // 更新按钮
         const startBtn = document.querySelector("button[onclick*='generateAgent']");
         if(startBtn) startBtn.innerText = t.startBtn;
         const exportBtn = document.querySelector("button[onclick*='exportHTML']");
         if(exportBtn) exportBtn.innerText = t.exportBtn;
 
-        // 2. 下拉菜单更新
+        // 更新下拉菜单 (Difficulty) - 重建 Options 以匹配语言
         const diffSelect = document.getElementById('diffSelect');
         if(diffSelect) {
+            // 保留当前选中的索引
             const idx = diffSelect.selectedIndex;
-            diffSelect.innerHTML = '';
-            t.diffOpts.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.text = opt; diffSelect.add(o); });
+            diffSelect.innerHTML = ''; // 清空
+            t.diffOpts.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.text = opt;
+                diffSelect.add(option);
+            });
             diffSelect.selectedIndex = idx > -1 ? idx : 0;
         }
-        const modelSel = document.getElementById('modelSelect');
-        if(modelSel) {
-            if(modelSel.options[0]) modelSel.options[0].text = t.modelOpt1;
-            if(modelSel.options[1]) modelSel.options[1].text = t.modelOpt2;
-        }
 
-               // 3. 右侧面板更新
+        // 更新右侧面板
         safeSet('lbl-inspector', t.inspTitle);
         safeSet('lbl-metric1', t.met1);
         safeSet('lbl-metric2', t.met2);
         safeSet('lbl-metric3', t.met3);
         safeSet('lbl-feedback-title', t.fbTitle);
-
         const fbBox = document.getElementById('ai-feedback');
-        // 【核心修复】获取所有语言字典里的“反思占位符”
-        const allFbTexts = Object.values(this.dict).map(d => d.fbPlace);
-        // 只要当前文字包含任意一种语言的占位符前10个字，就视为默认状态，需要更新
-        if (fbBox && allFbTexts.some(txt => fbBox.innerText.includes(txt.substring(0, 10)))) {
+        if(fbBox && fbBox.innerText.includes('生成') || fbBox.innerText.includes('After')) {
              fbBox.innerText = t.fbPlace;
         }
-
-        // 4. [修复] 领域识别 "等待输入..."
-        const dTag = document.getElementById('domainTag');
-        // 【核心修复】获取所有语言字典里的“等待提示语”
-        const allWaitTexts = Object.values(this.dict).map(d => d.domainWait);
-        // 只要当前文字在等待列表中，或者包含默认的“等待”，就更新
-        if(dTag && (allWaitTexts.includes(dTag.innerText) || dTag.innerText.includes('等待'))) {
-            dTag.innerText = t.domainWait;
-        }
-
-        // 5. 顶部、红绿灯、设置
-        safeSet('lbl-topbar', t.topbar);
-        // 修改后：加个保底值，如果字典里没有，就不要清空原本的文字
-const topText = t.topbar || t['topbar'] || 'NEBULA Preview Terminal';
-safeSet('lbl-topbar', topText);
-        const red = document.getElementById('btn-light-red');
-        const yel = document.getElementById('btn-light-yellow');
-        const grn = document.getElementById('btn-light-green');
-        if(red) red.title = t.tipRed;
-        if(yel) yel.title = t.tipYellow;
-        if(grn) grn.title = t.tipGreen;
-
-        safeSet('lbl-set-title', t.settingTitle);
-        safeSet('lbl-set-theme', t.themeLabel);
-        safeSet('lbl-lang-note', t.langNote);
-        safeSet('btn-clear-hist', t.btnClear);
-        safeSet('btn-save-settings', t.btnSave);
         
-        const selTheme = document.getElementById('sel-theme');
-        if(selTheme) { if(selTheme.options[0]) selTheme.options[0].text = t.themeDark; if(selTheme.options[1]) selTheme.options[1].text = t.themeLight; }
-
-        const introBox = document.getElementById('lbl-set-intro');
-        if(introBox) introBox.innerHTML = t.introHtml;
-        const devBox = document.getElementById('lbl-set-dev');
-        if(devBox) devBox.innerHTML = t.devHtml;
-
-        // 6. [修复] 如果屏幕处于“已清空”状态，切换语言时也要更新屏幕中间的文字
-        const frame = document.getElementById('previewFrame');
-        // 简单判断：如果源码很短且包含 cleanup 相关的词
-        if(frame && frame.srcdoc.length < 600 && (frame.srcdoc.includes('已清空') || frame.srcdoc.includes('Cleared'))) {
-            frame.srcdoc = `<body style='background:#111; color:#666; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'><h2>${t.clearedText}</h2></body>`;
-        }
-
-        // 7. 加载文字
+        // 更新加载器文字 (如果有的话)
         const loaderText = document.querySelector('#globalLoader p');
-        if(loaderText) loaderText.dataset.defaultText = t.loading;
-        if(loaderText && loaderText.innerText.includes('...')) {
-            if(loaderText.innerText.includes('KB')) {
-                const kbPart = (loaderText.innerText.match(/\d+(\.\d+)?\s*KB/) || [''])[0];
-                if(kbPart) loaderText.innerText = `${t.compileText} (${kbPart})`;
-            } else {
-                loaderText.innerText = t.loading;
-            }
-        }
+        if(loaderText) loaderText.dataset.defaultText = t.loading; // 暂存，下次显示时用
 
+        // 更新文字方向 (RTL)
         document.body.style.direction = (code === 'ar') ? 'rtl' : 'ltr';
+
+        console.log(`Language switched to: ${this.status.name}`);
     },
+
+    // D. 生成给 DeepSeek 的强制指令
     getPrompt: function() {
-        return `Target Language: **${this.status.name}**. Output Rules: 1. ALL content (explanations, quizzes, feedback) MUST be in ${this.status.name}. 2. UI Elements: "Start", "Next" must be translated.`;
+        return `
+        【MANDATORY LANGUAGE CONFIGURATION】
+        Target Language: **${this.status.name}**
+        Output Rules:
+        1. ALL content (explanations, quizzes, feedback, buttons) MUST be in ${this.status.name}.
+        2. UI Elements: "Start", "Next", "Submit" must be translated to ${this.status.name}.
+        3. If the user input is in a different language, TRANSLATE it mentally and generate output in ${this.status.name}.
+        `
     },
+    
+    // E. 获取当前 UI 里的“分析中”文字
     getText: function(key) {
         const code = this.status.code;
         const t = this.dict[code] || this.dict['en'];
@@ -1480,151 +1220,96 @@ osc.stop(now + 0.4);
 -----------------------------------------------------------------------------
 [MODULE] System Logic (Auth & Security)
 -----------------------------------------------------------------------------
-*//* -----------------------------------------------------------------------------
-   [MODULE] System Logic (Auth & Security)
-   ----------------------------------------------------------------------------- */
+*/
 const SystemLogic = {
-    attemptLogin: function() {
-        const pwdInput = document.getElementById('sys-pwd');
-        const pwd = pwdInput.value;
-        const panel = document.querySelector('.login-panel');
-        const layer = document.getElementById('login-layer');
+attemptLogin: function() {
+const pwd = document.getElementById('sys-pwd').value;
+const panel = document.querySelector('.login-panel');
 
-        // 修改密码验证逻辑：支持 'admin' 或 'test'
-        if (pwd === 'admin' || pwd === 'test') {
-            // 播放音效 (如果有)
-            if (window.AudioEngine && AudioEngine.play) AudioEngine.play('login');
-            
-            // 淡出动画
-            layer.style.opacity = '0';
-            setTimeout(() => {
-                layer.style.display = 'none'; // 彻底隐藏遮罩
-                
-                // 给预览窗口一个初始画面
-                const frame = document.getElementById('previewFrame');
-                if (frame) {
-                    frame.srcdoc = "<body style='background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; height:90vh; color:#333; font-family:sans-serif;'><h1>Nebula Incubator</h1><p>Ready to Generate.</p></body>";
-                }
-            }, 600);
-        } else {
-            // 密码错误处理
-            if (window.AudioEngine && AudioEngine.play) AudioEngine.play('error');
-            
-            // 摇晃动画 (需配合 CSS .shake)
-            panel.classList.remove('shake');
-            void panel.offsetWidth; // 触发重绘
-            panel.classList.add('shake');
-            
-            // 清空并提示
-            pwdInput.value = '';
-            pwdInput.placeholder = 'Access Denied';
-            pwdInput.style.borderColor = '#ff453a'; // 变红
-            setTimeout(() => pwdInput.style.borderColor = 'rgba(255,255,255,0.2)', 1000);
-        }
-    }
+if(pwd === 'admin') {
+AudioEngine.play('login');
+const layer = document.getElementById('login-layer');
+layer.style.opacity = '0';
+setTimeout(() => {
+layer.style.display = 'none';
+document.getElementById('previewFrame').srcdoc = "<body style='background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; height:90vh; color:#333; font-family:sans-serif;'><h1>Nebula Incubator</h1><p>Ready to Generate.</p></body>";
+}, 600);
+} else {
+AudioEngine.play('error');
+panel.classList.remove('shake');
+void panel.offsetWidth;
+panel.classList.add('shake');
+}
+}
 };
-
-// 绑定回车键登录 (在页面加载完成后)
-window.addEventListener('DOMContentLoaded', () => {
-    const pwdInput = document.getElementById('sys-pwd');
-    if (pwdInput) {
-        pwdInput.focus(); // 自动聚焦
-        pwdInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') SystemLogic.attemptLogin();
-        });
-    }
-});
-
 /*
 -----------------------------------------------------------------------------
 Global State Management
 -----------------------------------------------------------------------------
 */
-/* -----------------------------------------------------------------------------
-   Global State Management
-   ----------------------------------------------------------------------------- */
 let lastGeneratedHtml = "";
 let domainLabel = "未知领域";
 let isCollapsed = false;
-
 // Window Message Event Listener
 window.addEventListener('message', (e) => {
-    if(e.data.type === 'SUBMIT_LEARNING') {
-        CoreAgent.processReflection(e.data.content);
-    }
-    if(e.data.type === 'SAVE_DATA') {
-        SupabaseService.log(
-            document.getElementById('topicInput').value,
-            'Generated',
-            e.data.payload,
-            'Auto-Save (Sub-app)',
-            document.getElementById('roleInput').value
-        );
-    }
+if(e.data.type === 'SUBMIT_LEARNING') {
+CoreAgent.processReflection(e.data.content);
+}
+if(e.data.type === 'SAVE_DATA') {
+SupabaseService.log(
+document.getElementById('topicInput').value,
+'Generated',
+e.data.payload,
+'Auto-Save (Sub-app)'
+// 注意：这里也要加第5个参数，但因为这里拿不到 role 变量，
+// 可以实时获取：
+, document.getElementById('roleInput').value
+);
+}
 });
-
 /**
- * Window Controls (红绿灯控制逻辑 - 国际化修复版)
- */
+* Window Controls
+*/
 function control(action) {
-    const frame = document.getElementById('previewFrame');
-    const side = document.getElementById('mainSidebar');
+const frame = document.getElementById('previewFrame');
+const side = document.getElementById('mainSidebar');
 
-    // 1. 黄灯：折叠/展开
-    if(action === 'collapse') {
-        isCollapsed = !isCollapsed;
-        side.classList.toggle('collapsed');
-    }
-    // 2. 绿灯：全屏
-    else if(action === 'full') {
-        if(!document.fullscreenElement) {
-            frame.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
-    }
-    // 3. 红灯：单击清空
-    else if(action === 'clear') {
+if(action === 'collapse') {
+isCollapsed = !isCollapsed;
+side.classList.toggle('collapsed');
+}     else if(action === 'full') {
+if(!document.fullscreenElement) {
+frame.requestFullscreen();
+} else {
+document.exitFullscreen();
+}
+}
+     // 红色按键：单击清空
+    if(action === 'clear') {
         if(frame.srcdoc.length > 500) {
-            lastGeneratedHtml = frame.srcdoc; 
+            lastGeneratedHtml = frame.srcdoc; // 备份当前内容
         }
-        // 获取语言包里的提示语
-        let msg = "Cleared (Double-click red light to restore)";
-        if (typeof LinguaForce !== 'undefined' && LinguaForce.getText) {
-            msg = LinguaForce.getText('clearedText');
-        }
-        frame.srcdoc = `<body style='background:#111; color:#666; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'><h2>${msg}</h2></body>`;
+        frame.srcdoc = "<body style='background:#111; color:#666; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;'><h2>已清空 (双击红灯恢复)</h2></body>";
     }
-    // 4. 红灯：双击恢复
+    // 红色按键：双击恢复
     else if(action === 'restore') {
         if(lastGeneratedHtml && lastGeneratedHtml.length > 500) {
             frame.srcdoc = lastGeneratedHtml;
         } else {
-            const isEn = (typeof LinguaForce !== 'undefined' && LinguaForce.status.code === 'en');
-            alert(isEn ? "No history found to restore!" : "没有可恢复的历史记录！");
+            alert("没有可恢复的历史记录！");
         }
     }
 }
-
 /**
- * UI Helpers
- */
+* UI Helpers
+*/
 function showLoader(s) {
-    document.getElementById('globalLoader').style.display = s ? 'flex' : 'none';
+document.getElementById('globalLoader').style.display = s ? 'flex' : 'none';
 }
-
 function toggleSettings() {
-    const menu = document.getElementById('settings-menu');
-    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-}// --- [新增] 清空历史记录功能 ---
-function clearHistory() {
-    const list = document.getElementById('historyList');
-    if (list) {
-        list.innerHTML = ''; // 这里的指令就是把历史列表里的文字全部擦除
-        // alert("历史记录已清空"); // 如果需要提示，可以取消前面的注释
-    }
+const menu = document.getElementById('settings-menu');
+menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
 }
-
 function updateMetrics(s, d, f) {
 const setBar = (idVal, idBar, val) => {
 const elVal = document.getElementById(idVal);
@@ -1672,26 +1357,23 @@ async identifyDomain() {
                 action: "identify",
                 model: "deepseek-chat",
                 // 【核心修改】 Prompt 逻辑升级
-                messages: [{ 
-                    role: "user", 
+                messages: [{
+                    role: "user",
                     content: `
                     Task: Identify the academic field for the topic: "${topic}".
                     Rules:
                     1. Map the topic to a broader standard academic discipline (e.g., "Math Modeling" -> "Applied Mathematics", "Vue.js" -> "Web Development").
                     2. Output ONLY the discipline name.
                     3. Output the name strictly in **${targetLang}**.
-                    ` 
+                    `
                 }]
             })
         });
         const data = await res.json();
         if(data.choices && data.choices[0]) {
-       let rawLabel = data.choices[0].message.content.replace(/[\[.\]]/g, '').trim(); // 去掉方括号
-// 正则魔法：在小写字母和大写字母之间插入空格 (例如 ComputerScience -> Computer Science)
-domainLabel = rawLabel.replace(/([a-z])([A-Z])/g, '$1 $2');
-
-document.getElementById('domainTag').innerText = domainLabel;
- } else {
+            domainLabel = data.choices[0].message.content.replace(/[\[. \]]/g, '');
+            document.getElementById('domainTag').innerText = domainLabel;
+        } else {
             throw new Error("API Format Error");
         }
     } catch(e) {
@@ -1703,12 +1385,6 @@ document.getElementById('domainTag').innerText = domainLabel;
   
   
 async generateAgent() {
-    // 1. 先把 iframe 清空，防止残留
-    const frame = document.getElementById('previewFrame');
-    frame.srcdoc = ""; 
-    
-    // 2. 强制重置 lastGeneratedHtml 变量
-    lastGeneratedHtml = "";
 
 const topic = document.getElementById('topicInput').value;
 const diff = document.getElementById('diffSelect').value;
@@ -1716,14 +1392,13 @@ const role = document.getElementById('roleInput').value || "通用学习者";
 const model = document.getElementById('modelSelect').value;
 const loaderText = document.querySelector('#globalLoader p');
 // 【新增这行】从 LinguaForce 获取语言指令
-const langInstruction = LinguaForce.getPrompt(); 
+const langInstruction = LinguaForce.getPrompt();
 
   if(!topic) return alert("请检查学习主题");
 
 showLoader(true);
-
-// 修改后：改成从字典里动态获取，或者直接写英文默认值
-loaderText.innerText = LinguaForce.getText('loading');// =========================================================================
+loaderText.innerText = "正在组织教育专家团队...";
+// =========================================================================
 // [STRICT] Base Prompt
 // =========================================================================
 const originalPrompt = `你是一个由教育专家、数学建模师、代码大师组成的团队。
@@ -1734,9 +1409,8 @@ const originalPrompt = `你是一个由教育专家、数学建模师、代码�
 ${langInstruction}  <-- 【在此处注入】
 【框架要求】：
 1. 引子：建立情境。
-2. 探索：5 个章节，每个章节有剧情描述。
-3. 测验：每个章节包含 5 道题。重点：是每个章节都有5道不同题型的题目，而不是一个章节一道不同题型的题目
-（多样化：单选、多选、判断、连线、排序、实际问题分析）。
+2. 探索：3 个 Section，每个 Section 有剧情描述。
+3. 测验：每个 Section 包含 3 道题（多样化：单选、多选、判断、实际问题分析）。
 4. 引导：每道题在选错时，必须弹出一个引导框，说明为什么这个逻辑不对，并引导用户重新思考。并且每个正确错误选项需要有不同的引导式解释，用户没有选出正确选项前不能进入到下一题/下一章节。
 5. 最终发现：用户输入一段发现，点击按钮时执行 window.parent.postMessage({type:'SUBMIT_LEARNING', content: text}, '*')。
 【样式要求】：
@@ -1745,6 +1419,7 @@ ${langInstruction}  <-- 【在此处注入】
 - 整个页面必须完整且丰富，包含完整的 HTML/CSS/JS。
 - 语言必须为中文。
 输出：只输出 HTML 代码，不要 Markdown 标记。
+输出格式硬性要求：返回内容必须以 <!DOCTYPE html> 开头，并以 </html> 结尾；禁止任何解释文字、前言、后记。
 `;
 // =========================================================================
 // [INCREMENTAL FIX] Prompt Addons for Interaction
@@ -1807,6 +1482,11 @@ const promptAddons = `
     - 初始状态：只显示封面 (#cover)。点击开始后，隐藏封面，显示 Section 1。
     - **严禁**将新内容追加在底部！必须 \`display:none\` 隐藏旧页面。
 
+ 4. [修复: 自动回顶]
+    - 在点击“下一章”或“开始学习”的所有逻辑中，必须包含：
+      \`window.scrollTo({ top: 0, behavior: 'smooth' });\`
+      \`document.body.scrollTop = 0;\` // 兼容 Safari
+
  5. [修复: 强制引导]
     - 用户做完每道题（无论对错），**必须**立即弹出一个模态框 (Modal) 显示解析。
     - 严禁只变色不反馈。
@@ -1819,23 +1499,12 @@ const promptAddons = `
       例如：必须写 \`window.startSection = function() { ... }\`，**严禁**使用 \`const start = ...\` 或 \`document.querySelector(...).addEventListener\`。
     - HTML 按钮必须显式调用：\`<button onclick="window.startSection()">\`。
     - **iPad 兼容性**：在 CSS 中强制添加 \`* { cursor: pointer; }\`，确保点击事件在 iOS 上能被触发。
- 8. [逻辑修复: 提交后反馈 (Submit-then-Feedback)]
-    - **严禁**点击选项后立即弹出模态框（这会导致无法修改选项或进行多选）。
-    - **必须**在每道题下方生成一个“提交答案”按钮。
-    - **交互流程**：
-      1. 用户点击选项（Radio/Checkbox 变为选中状态）。
-      2. 用户点击“提交答案”按钮。
-      3. 此时才根据选中情况弹出模态框 (Modal) 显示解析。
-    - 只有当用户答对时，模态框中才显示“下一题”或“下一章”按钮。
 
- 9. [核心修复: 选项结构]
-    - 生成的选项必须使用标准的 <label> 包裹 <input> 结构，例如：
-      <label class="option-card">
-          <input type="radio" name="q1" value="A">
-          <span>选项内容...</span>
-      </label>
-    - 这样用户点击卡片文字时，浏览器会自动选中 Input，无需编写复杂的 JS 点击事件。
-
+ 8.[逻辑修复: 强制阻断式引导 (Blocking Quiz)]
+    - **数据结构要求**：每一道题的每一个选项（A/B/C...）都必须拥有**独立的反馈解释 (Specific Feedback)**。
+    - **交互流程规范**：
+      1. 用户点击任一选项 -> 2. **立即弹出模态框 (Modal)** 显示该选项的解释 -> 3. 只有当用户选了**正确答案**时，模态框才显示“下一题/下一章”按钮；如果是错的，只显示“重试/关闭”按钮。
+    - **严禁**用户在未答对的情况下直接滑动到下一题或下一章。
 
 
 `;
@@ -1849,7 +1518,10 @@ headers: {
 
 },
 body: JSON.stringify({
- action: "generate", 
+ action: "generate",
+ topic: topic,
+ role: role,
+ difficulty: diff,
   model: model,
 messages: [{ role: "user", content: originalPrompt + promptAddons }],
 max_tokens: 8192,
@@ -1858,269 +1530,235 @@ top_p: 0.85,
 stream: true
 })
 });
-const reader = response.body.getReader();
-const decoder = new TextDecoder("utf-8");
-let buffer = "";
-while (true) {
-const { done, value } = await reader.read();
-if (done) break;
-buffer += decoder.decode(value, { stream: true });
-const lines = buffer.split('\n');
-buffer = lines.pop();
-for (const line of lines) {
-const trimmedLine = line.trim();
-if (!trimmedLine || trimmedLine === 'data: [DONE]') continue;
-if (trimmedLine.startsWith('data: ')) {
-try {
-const jsonStr = trimmedLine.substring(6);
-const json = JSON.parse(jsonStr);
-const delta = json.choices[0].delta;
+if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+}
 
-if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
+const contentType = response.headers.get("content-type") || "";
+if (contentType.includes("text/event-stream")) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine || trimmedLine === 'data: [DONE]') continue;
+            if (trimmedLine.startsWith('data: ')) {
+                try {
+                    const jsonStr = trimmedLine.substring(6);
+                    const json = JSON.parse(jsonStr);
+                    const delta = json.choices?.[0]?.delta || {};
 
-if (delta.content) {
-fullContent += delta.content;
-if (fullContent.length % 100 === 0) {
-const kbSize = (fullContent.length / 1024).toFixed(2);
-// 动态获取当前语言的文本
-const compileBase = LinguaForce.getText('compileText'); 
-loaderText.innerText = `${compileBase} (${kbSize} KB)`;
+                    if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
+
+                    if (delta.content) {
+                        fullContent += delta.content;
+                        if (fullContent.length % 100 === 0) {
+                            const kbSize = (fullContent.length / 1024).toFixed(2);
+                            loaderText.innerText = `正在编译架构... 已接收 ${kbSize} KB`;
+                        }
+                    }
+                } catch (e) {
+                }
+            }
+        }
+    }
+} else {
+    const data = await response.json();
+    if (typeof data.html === "string") {
+        fullContent = data.html;
+    } else if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        fullContent = data.choices[0].message.content;
+    } else {
+        throw new Error("API 返回格式不支持");
+    }
 }
+
+if (!fullContent || !fullContent.trim()) {
+    throw new Error("生成结果为空");
 }
-} catch (e) {
-// Ignore non-JSON
+
+const extractPureHtml = (raw) => {
+    let text = (raw || "").trim();
+
+    const fencedHtml = text.match(/```html\s*([\s\S]*?)```/i);
+    if (fencedHtml && fencedHtml[1]) {
+        text = fencedHtml[1].trim();
+    } else {
+        const fencedAny = text.match(/```\s*([\s\S]*?)```/i);
+        if (fencedAny && fencedAny[1]) text = fencedAny[1].trim();
+    }
+
+    const lower = text.toLowerCase();
+    const doctypeIdx = lower.indexOf("<!doctype html>");
+    const htmlIdx = lower.indexOf("<html");
+    const startIdx = doctypeIdx >= 0 ? doctypeIdx : htmlIdx;
+
+    if (startIdx >= 0) {
+        text = text.slice(startIdx);
+        const lower2 = text.toLowerCase();
+        const endIdx = lower2.lastIndexOf("</html>");
+        if (endIdx >= 0) {
+            text = text.slice(0, endIdx + 7);
+        }
+        return text.trim();
+    }
+
+    throw new Error("模型返回内容不是有效 HTML");
+};
+
+let htmlCode = extractPureHtml(fullContent);
+
+const plainText = htmlCode
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+if (plainText.length < 8) {
+        htmlCode = `
+        <html><body style="font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif; padding: 24px; line-height: 1.6;">
+            <h2>生成结果可视内容过少</h2>
+            <p>本次模型返回了几乎空白的页面，已拦截，避免显示纯色空白屏。</p>
+            <p>请重试一次，或缩短主题描述后再次生成。</p>
+        </body></html>
+        `.trim();
 }
-}
-}
-}
-let htmlCode = fullContent.replace(/```html/g, "").replace(/```/g, "").trim();
             // -----------------------------------------------------------
-            // [Nebula Fix] 终极交互引擎 v7.0 (暴力交互修复 + AI Cloudflare 助手)
+            // [Nebula Fix] 开始注入强制修复脚本
+            // -----------------------------------------------------------
+                        // -----------------------------------------------------------
+            // [Nebula Fix] 开始注入强制修复脚本 (增强版 v2.0)
+            // -----------------------------------------------------------
+                      // -----------------------------------------------------------
+            // [Nebula Fix] 核弹级修复脚本 v3.0 (全局劫持 + 悬浮控制台)
             // -----------------------------------------------------------
             const universalFix = `
             <script>
             (function() {
-                console.log("Nebula Ultimate Engine v7.0 Loaded");
-// 初始化聊天上下文
-window.chatContext = [{role: 'system', content: 'You are a helpful tutor. Please answer briefly.'}];
+                console.log("Nebula Ultimate Fix v3.0 Loaded");
 
-                // === 1. 强制样式注入 (确保可点击) ===
+                // === 1. 注入强制样式 & 悬浮按钮样式 ===
                 const style = document.createElement('style');
                 style.innerHTML = \`
-                    /* 强制手型和反馈 */
-                    button, .btn, [role="button"], [onclick], .option-btn, .next-btn { cursor: pointer !important; transition: all 0.2s; }
-                    button:active, .btn:active { transform: scale(0.98); }
+                    /* 强制所有交互元素显示手型 */
+                    button, .btn, [role="button"], [onclick] { cursor: pointer !important; }
                     
-                  /* AI 答疑助手悬浮球 */
-#nebula-ai-helper {
-    position: fixed !important; 
-    bottom: 30px !important; 
-    right: 30px !important;
-    width: 60px !important; 
-    height: 60px !important;
-    background: linear-gradient(135deg, #0a84ff, #0071e3) !important;
-    border-radius: 50% !important;
-    box-shadow: 0 8px 30px rgba(10, 132, 255, 0.5) !important;
-    display: flex !important; 
-    justify-content: center; 
-    align-items: center;
-    color: white !important; 
-    font-size: 28px !important; 
-    cursor: pointer !important; 
-    z-index: 2147483647 !important; /* CSS 允许的最大 z-index */
-    transition: transform 0.3s;
-    pointer-events: auto !important; /* 确保能点 */
-}
-#nebula-ai-helper:hover { transform: scale(1.1) rotate(10deg); }
-  
-                    /* 聊天框 */
-                    #nebula-chat-modal {
-                        position: fixed; bottom: 80px; right: 20px;
-                        width: 320px; height: 450px;
-                        background: rgba(255, 255, 255, 0.95);
-                        backdrop-filter: blur(20px);
-                        border-radius: 16px;
-                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                        display: none; flex-direction: column;
-                        z-index: 99999; border: 1px solid rgba(0,0,0,0.1);
-                        overflow: hidden;
+                    /* 悬浮控制按钮 (右下角) */
+                    #nebula-force-btn {
+                        position: fixed;
+                        bottom: 15px;
+                        right: 15px;
+                        z-index: 2147483647; /*而在最高层*/
+                        background: rgba(16, 185, 129, 0.9);
+                        color: white;
+                        border: none;
+                        padding: 8px 12px;
+                        font-size: 12px;
+                        border-radius: 6px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        font-family: sans-serif;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
                     }
-                    .msg-user { margin: 10px 0; text-align: right; color: #0a84ff; background: rgba(10, 132, 255, 0.1); padding: 8px 12px; border-radius: 12px 12px 0 12px; align-self: flex-end; max-width: 80%; }
-                    .msg-ai { margin: 10px 0; text-align: left; color: #333; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 12px 12px 12px 0; align-self: flex-start; max-width: 90%; font-size: 13px; line-height: 1.5; }
+                    #nebula-force-btn:hover { transform: scale(1.05); background: #059669; }
+                    #nebula-force-btn:active { transform: scale(0.95); }
                 \`;
                 document.head.appendChild(style);
 
-                // === 2. 注入 AI 助手 UI ===
-                const helperBtn = document.createElement('div');
-                helperBtn.id = 'nebula-ai-helper';
-                helperBtn.innerHTML = '💬';
-                helperBtn.onclick = () => {
-                    const modal = document.getElementById('nebula-chat-modal');
-                    modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-                };
-                
-                const chatModal = document.createElement('div');
-                chatModal.id = 'nebula-chat-modal';
-                chatModal.innerHTML = \`
-                    <div style="padding:15px; border-bottom:1px solid rgba(0,0,0,0.1); font-weight:bold; font-size:14px; background:rgba(255,255,255,0.8);">AI Tutor</div>
-                    <div style="flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column;" id="nebula-chat-history">
-                        <div class="msg-ai">🤖: Ask me anything about this topic!</div>
-                    </div>
-                    <div style="padding:10px; border-top:1px solid rgba(0,0,0,0.1); display:flex; gap:10px;">
-                        <input type="text" id="nebula-chat-input" placeholder="Type..." style="flex:1; padding:8px; border:1px solid #ddd; border-radius:8px; outline:none;">
-                        <button onclick="window.sendToRealAI()" style="border:none; background:#0a84ff; color:white; padding:8px 15px; border-radius:8px;">Send</button>
-                    </div>
-                \`;
-                document.body.appendChild(helperBtn);
-                document.body.appendChild(chatModal);
-// 【核心修改】确保 body 存在后再添加，或者直接添加到 html
-                if (document.body) {
-                    document.body.appendChild(helperBtn);
-                    document.body.appendChild(chatModal);
-                } else {
-                    window.addEventListener('DOMContentLoaded', () => {
-                         
-                    });
-                }
-                               // === 3. 真实 AI 请求 (Cloudflare + 上下文记忆) ===
-                // 初始化上下文记忆（如果还没定义）
-                if (!window.nebulaChatContext) {
-                    window.nebulaChatContext = [
-                        { role: "system", content: "You are a helpful AI tutor. You must answer based on the conversation history." }
-                    ];
-                }
-                window.sendToRealAI = async function() {
-                    const input = document.getElementById('nebula-chat-input');
-                    const historyBox = document.getElementById('nebula-chat-history');
-                    const val = input.value;
-                    if(!val) return;
-                    
-                    // 1. UI 显示用户提问
-                    historyBox.innerHTML += '<div class="msg-user">' + val + '</div>';
-                    input.value = '';
-                    historyBox.scrollTop = historyBox.scrollHeight;
-                    
-                    // 2. 将用户问题加入上下文
-                    window.nebulaChatContext.push({ role: "user", content: val });
-                    
-                    // 3. UI 显示正在思考
-                    const loadingDiv = document.createElement('div');
-                    loadingDiv.className = 'msg-ai';
-                    loadingDiv.innerText = '🤖 Thinking...';
-                    historyBox.appendChild(loadingDiv);
-                    
-                    try {
-                        const API_URL = "https://nebulaaiagent.sujunyue-sam.workers.dev"; 
-                        const res = await fetch(API_URL, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                model: "deepseek-chat", 
-                                messages: window.nebulaChatContext,
-                                stream: true
-                            })
-                        }); // <--- 【修复点1】 这里补上了闭合括号！
-                        
-                        // === Stream Reader 逻辑 ===
-                        const reader = res.body.getReader();
-                        const decoder = new TextDecoder("utf-8");
-                        let fullText = ""; 
-                        
-                        // 清空 "Thinking..."
-                        loadingDiv.innerHTML = "";
-                        
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break; 
-                            
-                            const chunk = decoder.decode(value, { stream: true });
-                            const lines = chunk.split('\n');
-                            
-                            for (const line of lines) {
-                                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                                    try {
-                                        const json = JSON.parse(line.substring(6));
-                                        const content = json.choices[0].delta.content || "";
-                                        fullText += content;
-                                        
-                                        // 实时渲染 Markdown
-                                        if (typeof marked !== 'undefined') {
-                                            loadingDiv.innerHTML = marked.parse(fullText);
-                                        } else {
-                                            loadingDiv.innerText = fullText;
-                                        }
-                                        historyBox.scrollTop = historyBox.scrollHeight;
-                                    } catch (e) { }
-                                }
-                            }
-                        }
-                        
-                        // 循环结束后，保存完整回复
-                        window.nebulaChatContext.push({role: 'assistant', content: fullText});
-                        
-                    } catch(e) {
-                        console.error(e);
-                        loadingDiv.innerText = "Error: " + e.message;
-                    }
-                }; // <--- 【修复点2】 这里补上了函数的闭合大括号！
-
-                // === 4. 暴力交互修复 (借鉴自旧版) ===
+                // === 2. 核心逻辑：智能寻找并切换下一页 ===
                 window.nebulaForceNext = function() {
-                    console.log("Force transition triggered");
-                    const current = document.querySelector('div[id^="section"][style*="block"]') || 
-                                    document.querySelector('div[id^="chapter"][style*="block"]') ||
-                                    document.querySelector('div:not([style*="none"]) > .card') || // 尝试找可见的卡片
-                                    document.querySelector('#cover');
-                                    
-                    // 如果找不到当前页，就找所有可能的页
-                    let pages = Array.from(document.querySelectorAll('div[id*="section"], div[id*="chapter"], div[id^="sect"], div[id="intro"], div[id="cover"]'));
+                    console.log("[Nebula] Attempting forced transition...");
                     
-                    // 简单的切换逻辑：找到当前显示的，隐藏它，显示下一个
-                    let found = false;
-                    for (let i = 0; i < pages.length - 1; i++) {
-                        if (window.getComputedStyle(pages[i]).display !== 'none') {
-                            pages[i].style.display = 'none';
-                            pages[i+1].style.display = 'block';
-                            found = true;
-                            window.scrollTo(0,0);
+                    // 策略A：寻找所有可能的“页面”容器
+                    let candidates = Array.from(document.querySelectorAll('div[id*="section"], div[id*="chapter"], div[id*="page"], div[id*="cover"], div[id="intro"]'));
+                    
+                    // 策略B：如果没找到 ID，尝试找 #app 的直接子元素
+                    if (candidates.length < 2) {
+                        const container = document.getElementById('app') || document.body;
+                        candidates = Array.from(container.children).filter(el => el.tagName === 'DIV' && el.id !== 'nebula-force-btn');
+                    }
+
+                    // 寻找当前显示的页面
+                    let currentIdx = -1;
+                    for (let i = 0; i < candidates.length; i++) {
+                        const style = window.getComputedStyle(candidates[i]);
+                        if (style.display !== 'none' && candidates[i].offsetHeight > 10) {
+                            currentIdx = i;
                             break;
                         }
                     }
-                    // 如果没找到显示的，或者已经是最后一页，就重置到第一页
-                    if (!found && pages.length > 0) {
-                        pages.forEach(p => p.style.display = 'none');
-                        pages[0].style.display = 'block'; // 通常是封面
-                        // 如果有 section-1，优先显示它
-                        const s1 = document.getElementById('section-1') || document.getElementById('section1');
-                        if(s1 && pages[0].id !== 'section-1') {
-                            pages[0].style.display = 'none';
-                            s1.style.display = 'block';
+
+                    // 执行切换
+                    if (currentIdx !== -1 && currentIdx < candidates.length - 1) {
+                        candidates[currentIdx].style.display = 'none';
+                        candidates[currentIdx + 1].style.display = 'block';
+                        window.scrollTo(0, 0);
+                        console.log("Switched to:", candidates[currentIdx + 1]);
+                    } else if (currentIdx === -1 && candidates.length > 0) {
+                        // 没找到显示的？默认显示第一个
+                        candidates.forEach(c => c.style.display = 'none');
+                        candidates[0].style.display = 'block';
+                    } else {
+                        // 实在没办法，尝试暴力显示 id="section-1"
+                        const sec1 = document.getElementById('section-1') || document.getElementById('section1');
+                        if(sec1) {
+                            document.querySelectorAll('div').forEach(d => { if(d.id !== 'nebula-force-btn') d.style.display='none' });
+                            sec1.style.display = 'block';
                         }
                     }
                 };
 
-                
-                // 绑定回车键聊天
-                document.addEventListener('keypress', (e) => {
-                    if(e.key === 'Enter' && document.activeElement.id === 'nebula-chat-input') {
-                        window.sendToRealAI();
-                    }
+                // === 3. 页面加载后执行 ===
+                window.addEventListener('load', () => {
+                    // A. 注入悬浮按钮
+                    const btn = document.createElement('div');
+                    btn.id = 'nebula-force-btn';
+                    btn.innerHTML = '<span>🔧 强制继续</span>';
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        window.nebulaForceNext();
+                    };
+                    document.body.appendChild(btn);
+
+                    // B. 绑定所有包含“开始”文字的元素
+                    setInterval(() => {
+                         // 暴力轮询：找到所有像按钮的东西
+                         const potentialBtns = document.querySelectorAll('button, div, a, span');
+                         potentialBtns.forEach(el => {
+                             // 只有当它是“开始”按钮且没被处理过
+                             if(!el.dataset.nebulaFixed && el.innerText && (el.innerText.includes('开始') || el.innerText.includes('Start'))) {
+                                 el.dataset.nebulaFixed = "true";
+                                 // 强制添加点击事件 (捕获阶段)
+                                 el.addEventListener('click', (e) => {
+                                     // 如果 100ms 后页面没动静，就强制跳转
+                                     setTimeout(window.nebulaForceNext, 100);
+                                 }, true);
+                                 // 视觉标记
+                                 el.style.border = "2px solid #34d399";
+                             }
+                         });
+                    }, 1000);
                 });
 
+                // === 4. 全局错误屏蔽 (防止 AI 代码报错中断运行) ===
                 window.onerror = function() { return true; };
             })();
             <\/script>
             `;
-            
-            // 拼接到 htmlCode// 拼接到 htmlCode (修复：插入到 body 结束标签之前，确保被执行)
-if (htmlCode.includes('</body>')) {
-    htmlCode = htmlCode.replace('</body>', universalFix + '</body>');
-} else {
-    htmlCode = htmlCode + universalFix; // 保底逻辑
-}
-
-
- // -----------------------------------------------------------
+  // 无论有没有 body 标签，都强制把修复脚本接在最后，确保交互脚本一定生效
+htmlCode = htmlCode + universalFix;
+            // -----------------------------------------------------------
             // [Nebula Fix] 注入结束
             // -----------------------------------------------------------
 
@@ -2131,64 +1769,12 @@ CoreAgent.saveToHistory(topic, htmlCode);
 // 获取身份输入框的值（如果 generateAgent 里没定义 role 变量，要先定义）
 // 刚才的代码里你应该已经加了 const role = document.getElementById('roleInput').value ...
 SupabaseService.log(topic, diff, htmlCode, reasoningContent, role);
-
-
-CoreAgent.assessQuality(htmlCode);
 } catch(e) {
 console.error(e);
-alert("孵化失败，请检查 API Key 或网络");
+const feedbackBox = document.getElementById('ai-feedback');
+if (feedbackBox) feedbackBox.innerText = "生成失败：请检查本地后端是否运行（http://127.0.0.1:5000）。";
 } finally {
 showLoader(false);
-}
-},
-async assessQuality(htmlCode) {
-document.getElementById('v1').innerText = "审计中...";
-document.getElementById('v3').innerText = "审计中...";
-const key = this.getEffectiveKey();
-const safeCode = htmlCode.length > 2000 ? htmlCode.substring(0, 2000) : htmlCode;
-
-// [修正] 基于用户提供的图片量表 (0-6分制)
-const auditPrompt = `
-你是一个严格的代码审计员。请基于以下【特定量表】对代码进行打分。
-
-【评分标准 (0-6分制)】：
-1. 稳定性 (对应学术稳定性)：
-- 0分：代码质量差，无法运行或崩溃。
-- 2分：交互逻辑存在Bug（如按钮点击无效）。
-- 4分：交互逻辑无Bug，点击正常。
-- 6分：高质量稳定，且在用户犯错时有引导提示 (Guidance)。
-
-2. 趣味性 (对应教学趣味性)：
-- 0分：流程冗长且乏味。
-- 2分：有剧情但交互模态单一（容易疲惫）。
-- 4分：剧情较吸引人，交互模态多样。
-- 6分：剧情引人入胜，且具有创新性交互模态。
-【输出要求】：
-请将上述 0-6 分的评分转换为 0-100 的百分比数值输出。
-输入代码片段：${safeCode}...
-请输出 JSON 格式：{"stability": 80, "fun": 60}
-`;
-
-try {
-const res = await fetch(ENTERPRISE_CONFIG.API_URL, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-        // 注意：这里没有 Authorization 了！
-    },
-    body: JSON.stringify({
-        action: "audit", 
-      model: "deepseek-chat",
-        messages: [{ role: "user", content: auditPrompt }]
-        // 建议暂时去掉 response_format，除非你的 Worker 明确支持转发这个参数
-    })
-});
-
-const data = await res.json();
-const result = JSON.parse(data.choices[0].message.content);
-updateMetrics(result.stability, 0, result.fun);
-} catch(e) {
-updateMetrics("Err", 0, "Err");
 }
 },
 async processReflection(content) {
@@ -2224,10 +1810,10 @@ const list = document.getElementById('historyList');
 const div = document.createElement('div');
 div.className = 'history-item';
 div.innerHTML = `<span>${t}</span> <span style="opacity:0.5; font-size:10px;">${new Date().toLocaleTimeString()}</span>`;
-div.onclick = () => { 
+div.onclick = () => {
     try {
-        document.getElementById('previewFrame').srcdoc = c; 
-        lastGeneratedHtml = c; 
+        document.getElementById('previewFrame').srcdoc = c;
+        lastGeneratedHtml = c;
     } catch(e) { console.error(e); }
 };
   list.prepend(div);
@@ -2261,13 +1847,13 @@ div.onclick = () => {
    [MODULE] Supabase Service (Updated)
    ----------------------------------------------------------------------------- */
 /* -----------------------------------------------------------------------------
-   [模块] 数据存储服务 (通过 Cloudflare 中转版)
+    [模块] 数据存储服务 (通过本地后端)
    ----------------------------------------------------------------------------- */
 const SupabaseService = {
     // 参数说明：t=主题, d=难度, code=代码, reason=AI思考过程, role=用户身份
     async log(t, d, code, reason, role) {
         try {
-            // 【重点】我们不再直接找 Supabase，而是统一发给 Cloudflare 网址
+            // 统一发给本地后端
             await fetch(ENTERPRISE_CONFIG.API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -2284,7 +1870,7 @@ const SupabaseService = {
                     }
                 })
             });
-            console.log("✅ 成功通过 Cloudflare 存入数据");
+            console.log("✅ 已通过本地后端存入数据");
         } catch(e) {
             console.warn("❌ 存入数据失败:", e);
         }
@@ -2352,6 +1938,24 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+<!-- Prevent accidental navigation to malformed or text-based hrefs that cause 404s -->
+<script>
+document.addEventListener('click', function(e){
+    try {
+        var el = e.target.closest && e.target.closest('a');
+        if(!el) return;
+        var href = el.getAttribute('href') || '';
+        if(!href) return;
+        // allow absolute and root-relative links
+        if(/^https?:\/\//i.test(href) || href.startsWith('/') || href.startsWith('#')) return;
+        // block hrefs that contain spaces or CJK characters (likely accidental text)
+        if(/[\s\u4e00-\u9fff]/.test(href)) {
+            e.preventDefault();
+            console.warn('Blocked navigation to malformed href:', href);
+            return false;
+        }
+    } catch(err) { console.error(err); }
+}, true);
+</script>
 </body>
 </html>
-
