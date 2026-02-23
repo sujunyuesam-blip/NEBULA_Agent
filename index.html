@@ -1734,8 +1734,8 @@ const originalPrompt = `你是一个由教育专家、数学建模师、代码�
 ${langInstruction}  <-- 【在此处注入】
 【框架要求】：
 1. 引子：建立情境。
-2. 探索：5 个 Section，每个 Section 有剧情描述。
-3. 测验：每个 Section 包含 5 道题。重点：是每个Section都有5道不同题型的题目，而不是一个Section一道不同题型的题目
+2. 探索：5 个章节，每个章节有剧情描述。
+3. 测验：每个章节包含 5 道题。重点：是每个章节都有5道不同题型的题目，而不是一个章节一道不同题型的题目
 （多样化：单选、多选、判断、连线、排序、实际问题分析）。
 4. 引导：每道题在选错时，必须弹出一个引导框，说明为什么这个逻辑不对，并引导用户重新思考。并且每个正确错误选项需要有不同的引导式解释，用户没有选出正确选项前不能进入到下一题/下一章节。
 5. 最终发现：用户输入一段发现，点击按钮时执行 window.parent.postMessage({type:'SUBMIT_LEARNING', content: text}, '*')。
@@ -1806,11 +1806,6 @@ const promptAddons = `
     - 必须采用单页应用 (SPA) 模式。
     - 初始状态：只显示封面 (#cover)。点击开始后，隐藏封面，显示 Section 1。
     - **严禁**将新内容追加在底部！必须 \`display:none\` 隐藏旧页面。
-
- 4. [修复: 自动回顶]
-    - 在点击“下一章”或“开始学习”的所有逻辑中，必须包含：
-      \`window.scrollTo({ top: 0, behavior: 'smooth' });\`
-      \`document.body.scrollTop = 0;\` // 兼容 Safari
 
  5. [修复: 强制引导]
     - 用户做完每道题（无论对错），**必须**立即弹出一个模态框 (Modal) 显示解析。
@@ -2359,3 +2354,4 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
