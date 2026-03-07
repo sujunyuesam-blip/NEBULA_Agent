@@ -2350,17 +2350,19 @@ window.addEventListener('DOMContentLoaded', () => {
     // 恢复历史 UI
     if (typeof updateHistoryUI === 'function') updateHistoryUI();
 });
-<!-- 在页面中添加一个隐藏的div，用于触发数据记录 -->
-<div id="ip-logger" style="display:none;"></div>
+<!-- 访客 IP 记录（通过 Cloudflare Worker） -->
 
+(function recordVisitorIP() {
+  // 如果 API_URL 未定义，则不执行
+  if (typeof ENTERPRISE_CONFIG === 'undefined' || !ENTERPRISE_CONFIG.API_URL) {
+    console.warn('ENTERPRISE_CONFIG 未定义，无法记录 IP');
+    return;
+  }
 
-// 页面加载后执行
-window.addEventListener('load', function() {
-  // 1. 从Cloudflare获取真实IP
+  // 1. 从 Cloudflare trace 获取真实 IP
   fetch('https://www.cloudflare.com/cdn-cgi/trace')
     .then(response => response.text())
     .then(data => {
-      // 解析返回的数据（格式是 key=value 每行一个）
       const lines = data.split('\n');
       const result = {};
       lines.forEach(line => {
@@ -2370,57 +2372,42 @@ window.addEventListener('load', function() {
         }
       });
       
-      // result.ip 就是访客的真实IP
       const visitorIP = result.ip || 'unknown';
       const userAgent = navigator.userAgent;
       const timestamp = new Date().toISOString();
-      
-      // 2. 调用Supabase API存入数据库
-      saveToSupabase(visitorIP, userAgent, timestamp);
+      const pageUrl = window.location.href;
+      const referrer = document.referrer || null;
+
+      // 2. 通过 Cloudflare Worker 记录 IP（复用现有 API 端点）
+      fetch(ENTERPRISE_CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'log_ip',   // 新动作，用于记录访客 IP
+          data: {
+            ip_address: visitorIP,
+            user_agent: userAgent,
+            visited_at: timestamp,
+            page_url: pageUrl,
+            referrer: referrer
+          }
+        })
+      })
+      .then(res => {
+        if (res.ok) {
+          console.log('访客 IP 已记录:', visitorIP);
+        } else {
+          console.warn('IP 记录失败，状态码:', res.status);
+        }
+      })
+      .catch(err => console.warn('IP 记录请求异常:', err));
     })
-    .catch(error => {
-      console.error('获取IP失败:', error);
-    });
-});
-
-// 保存到Supabase的函数
-function saveToSupabase(ip, userAgent, timestamp) {
-  // 你的Supabase配置
-  const SUPABASE_URL = 'https://kwdsgncdlbcpasjgsdzd.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_gVKdaUPiF2qB_sWf6l62uQ_ic8Z_aFq';
-  
-  // 要插入的数据
-  const data = {
-    ip_address: ip,
-    user_agent: userAgent,
-    visited_at: timestamp,
-    page_url: window.location.href
-  };
-  
-  // 调用Supabase REST API
-  fetch(`${SUPABASE_URL}/rest/v1/visitors`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => {
-    if (response.ok) {
-      console.log('访客IP已记录:', ip);
-    } else {
-      console.error('记录失败:', response.status);
-    }
-  })
-  .catch(error => {
-    console.error('请求失败:', error);
-  })();
-
+    .catch(err => console.warn('获取 IP 失败:', err));
+})();
 </script>
     
 </body>
 </html>
+
 
 
