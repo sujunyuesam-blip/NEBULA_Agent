@@ -2350,7 +2350,77 @@ window.addEventListener('DOMContentLoaded', () => {
     // 恢复历史 UI
     if (typeof updateHistoryUI === 'function') updateHistoryUI();
 });
+<!-- 在页面中添加一个隐藏的div，用于触发数据记录 -->
+<div id="ip-logger" style="display:none;"></div>
+
+
+// 页面加载后执行
+window.addEventListener('load', function() {
+  // 1. 从Cloudflare获取真实IP
+  fetch('https://www.cloudflare.com/cdn-cgi/trace')
+    .then(response => response.text())
+    .then(data => {
+      // 解析返回的数据（格式是 key=value 每行一个）
+      const lines = data.split('\n');
+      const result = {};
+      lines.forEach(line => {
+        const parts = line.split('=');
+        if (parts.length === 2) {
+          result[parts[0]] = parts[1];
+        }
+      });
+      
+      // result.ip 就是访客的真实IP
+      const visitorIP = result.ip || 'unknown';
+      const userAgent = navigator.userAgent;
+      const timestamp = new Date().toISOString();
+      
+      // 2. 调用Supabase API存入数据库
+      saveToSupabase(visitorIP, userAgent, timestamp);
+    })
+    .catch(error => {
+      console.error('获取IP失败:', error);
+    });
+});
+
+// 保存到Supabase的函数
+function saveToSupabase(ip, userAgent, timestamp) {
+  // 你的Supabase配置
+  const SUPABASE_URL = 'https://kwdsgncdlbcpasjgsdzd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_gVKdaUPiF2qB_sWf6l62uQ_ic8Z_aFq';
+  
+  // 要插入的数据
+  const data = {
+    ip_address: ip,
+    user_agent: userAgent,
+    visited_at: timestamp,
+    page_url: window.location.href
+  };
+  
+  // 调用Supabase REST API
+  fetch(`${SUPABASE_URL}/rest/v1/visitors`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('访客IP已记录:', ip);
+    } else {
+      console.error('记录失败:', response.status);
+    }
+  })
+  .catch(error => {
+    console.error('请求失败:', error);
+  });
+}
 
 </script>
+    
 </body>
 </html>
+
