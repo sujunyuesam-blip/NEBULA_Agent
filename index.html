@@ -2350,64 +2350,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // 恢复历史 UI
     if (typeof updateHistoryUI === 'function') updateHistoryUI();
 });
-<!-- 访客 IP 记录（通过 Cloudflare Worker） -->
 
-(function recordVisitorIP() {
-  // 如果 API_URL 未定义，则不执行
-  if (typeof ENTERPRISE_CONFIG === 'undefined' || !ENTERPRISE_CONFIG.API_URL) {
-    console.warn('ENTERPRISE_CONFIG 未定义，无法记录 IP');
-    return;
-  }
-
-  // 1. 从 Cloudflare trace 获取真实 IP
-  fetch('https://www.cloudflare.com/cdn-cgi/trace')
-    .then(response => response.text())
-    .then(data => {
-      const lines = data.split('\n');
-      const result = {};
-      lines.forEach(line => {
-        const parts = line.split('=');
-        if (parts.length === 2) {
-          result[parts[0]] = parts[1];
-        }
-      });
-      
-      const visitorIP = result.ip || 'unknown';
-      const userAgent = navigator.userAgent;
-      const timestamp = new Date().toISOString();
-      const pageUrl = window.location.href;
-      const referrer = document.referrer || null;
-
-      // 2. 通过 Cloudflare Worker 记录 IP（复用现有 API 端点）
-      fetch(ENTERPRISE_CONFIG.API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'log_ip',   // 新动作，用于记录访客 IP
-          data: {
-            ip_address: visitorIP,
-            user_agent: userAgent,
-            visited_at: timestamp,
-            page_url: pageUrl,
-            referrer: referrer
-          }
-        })
-      })
-      .then(res => {
-        if (res.ok) {
-          console.log('访客 IP 已记录:', visitorIP);
-        } else {
-          console.warn('IP 记录失败，状态码:', res.status);
-        }
-      })
-      .catch(err => console.warn('IP 记录请求异常:', err));
-    })
-    .catch(err => console.warn('获取 IP 失败:', err));
-})();
 </script>
-    
 </body>
 </html>
-
-
 
