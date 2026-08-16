@@ -1,0 +1,16 @@
+# === 敏感信息（绝不入库） ===
+.deploy-secrets.txt
+.fake-home/
+.env
+.env.*
+!.env.example
+*.dev.vars
+
+# === 本地缓存 / 依赖 / 构建产物 ===
+node_modules/
+.npm-cache/
+.pw-browsers/
+web/dist/
+.wrangler/
+.DS_Store
+*.log

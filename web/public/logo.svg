@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="nebula-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="0.5" stop-color="#4F8CFF"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="nebula-glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="rgba(255,255,255,0.35)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- 圆角星云底座 -->
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#nebula-g)"/>
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#nebula-glow)"/>
+  <!-- 星云旋臂（两条弧线） -->
+  <path d="M32 32 m0 -15 a15 15 0 1 1 -0.01 0" stroke="rgba(255,255,255,0.9)" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-dasharray="42 52"/>
+  <path d="M32 32 m0 -9 a9 9 0 1 0 -0.01 0" stroke="rgba(255,255,255,0.55)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-dasharray="24 32"/>
+  <!-- 中心恒星 -->
+  <circle cx="32" cy="32" r="5.2" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="9" fill="rgba(255,255,255,0.25)"/>
+  <!-- 伴星 -->
+  <circle cx="46.5" cy="17.5" r="2.4" fill="#ffffff" opacity="0.95"/>
+  <circle cx="18.5" cy="45" r="1.9" fill="#ffffff" opacity="0.75"/>
+  <circle cx="45" cy="46" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="19" cy="21" r="1.2" fill="#ffffff" opacity="0.5"/>
+</svg>

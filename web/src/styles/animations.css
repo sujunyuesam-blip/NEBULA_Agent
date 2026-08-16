@@ -1,0 +1,30 @@
+/* ============================================================================
+   补充动画（基础动画在 theme.css）
+   注意：卡片不做入场动画——避免每次交互重渲染时整页"闪一下"
+   ========================================================================== */
+
+/* 点赞心跳 */
+.like-heart { transition: transform 0.2s ease; }
+.like-heart.liked { animation: heartBeat 0.5s ease; }
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35); }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* 徽章点亮 */
+.badge-chip.lit { animation: badgeLit 1.4s ease infinite alternate; }
+@keyframes badgeLit {
+  from { box-shadow: 0 0 0 rgba(var(--accent-rgb), 0); }
+  to { box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.55); }
+}
+
+/* 选中卡片弹跳 */
+.diff-card.active, .model-card.active { animation: pop 0.25s ease; }
+
+/* 排行榜数字 */
+.lb-score { transition: color 0.3s; }
+
+/* 页面滚动条美化 for 内容页 */
+.page-view::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb), 0.2); }

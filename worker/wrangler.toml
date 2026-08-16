@@ -1,0 +1,53 @@
+# NEBULA API Worker
+# 部署目标域名: https://api.nebulavessel.com （保持原域名不变）
+name = "nebula-api"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+# ---------------------------------------------------------------
+# D1 数据库（历史记录 / 分享 / 日志）
+# 首次部署步骤：
+#   1. npx wrangler d1 create nebula-db
+#   2. 把输出的 database_id 填到下方 database_id
+#   3. npm run db:init  (执行 schema.sql 建表)
+# ---------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "nebula-db"
+database_id = "97643287-b45b-4c89-9a4d-b41f06c7a5fc"
+
+# ---------------------------------------------------------------
+# 域名绑定（部署后执行，保持原域名）：
+#   npx wrangler routes add api.nebulavessel.com --zone nebulavessel.com
+#   （如果旧 Worker 已绑定，先删除旧 Worker 的绑定或直接覆盖部署）
+# ---------------------------------------------------------------
+
+[vars]
+# MOCK=1 时全部 AI 接口返回内置样例（本地开发无需 API Key）
+MOCK = "0"
+DEEPSEEK_BASE = "https://api.deepseek.com"
+# 预设模型（前端选项：Flash 默认 / Pro；已验证 DeepSeek API 实际模型名）
+MODEL_FLASH = "deepseek-v4-flash"
+MODEL_PRO = "deepseek-v4-pro"
+# 允许跨域的前端来源（逗号分隔，生产为 https://www.nebulavessel.com）
+ALLOWED_ORIGINS = "https://www.nebulavessel.com,http://localhost:5173,http://127.0.0.1:5173"
+# 单用户（owner）标识，历史记录按此隔离
+OWNER = "nebula-user"
+# 管理员邮箱（注册该邮箱即为管理员，可访问内容管理后台）
+ADMIN_EMAILS = "sujunyue_sam@outlook.com"
+# Cloudflare Turnstile 人机验证（在 Cloudflare Dashboard → Turnstile 创建 widget 后填入 site key；secret 用 secret put TURNSTILE_SECRET_KEY）
+WECHAT_APP_ID = ""
+GOOGLE_CLIENT_ID = "199197353131-qf4ctqrlfr7d0s05gmhtddmeh2atf3nk.apps.googleusercontent.com"
+TURNSTILE_SITE_KEY = "0x4AAAAAAEQ8BwRaAqeHO5Pl"
+# 邮箱验证码开关：Resend 域名验证完成后改为 "1"（当前 0 = 跳过验证码）
+EMAIL_VERIFY_ENABLED = "1"
+# 发件人（域名验证后可改为 noreply@nebulavessel.com）
+EMAIL_FROM = "NEBULA <noreply@nebulavessel.com>"
+
+# 以下敏感配置用 secret 设置，不要写进文件（注意：不能与 [vars] 同名，否则绑定冲突）：
+#   npx wrangler secret put DEEPSEEK_API_KEY
+#   npx wrangler secret put ACCESS_TOKEN      （登录口令，支持逗号分隔多个）
+#   npx wrangler secret put JWT_SECRET        （会话签名密钥，任意随机长字符串）
+
+[observability]
+enabled = true
