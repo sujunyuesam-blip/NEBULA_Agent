@@ -137,11 +137,10 @@ function routeName() {
 // ---------- 路由分发 ----------
 async function renderRoute() {
   const hash = location.hash || "#/about";
-  if (hash.startsWith("#/google-auth") || hash.startsWith("#/wechat-auth")) {
+  if (hash.startsWith("#/wechat-auth")) {
     const params = new URLSearchParams(hash.split("?")[1] || "");
     const token = params.get("token");
     const err = params.get("error");
-    const isWechat = hash.startsWith("#/wechat-auth");
     if (token) {
       Session.set(token);
       toast(t("toastLoginOk"));
@@ -149,7 +148,7 @@ async function renderRoute() {
       renderRoute();
       api.profile().then((d) => { state.profileData = d; renderRoute(); }).catch(() => {});
     } else if (err) {
-      toast(`${t(isWechat ? "wechatLoginFail" : "googleLoginFail")}：${decodeURIComponent(err).slice(0, 100)}`, "err");
+      toast(`${t("wechatLoginFail")}：${decodeURIComponent(err).slice(0, 100)}`, "err");
       history.replaceState(null, "", location.pathname + "#/about");
       renderRoute();
     }
@@ -581,12 +580,6 @@ export function showAuth() {
 }
 
 function authLoginFields() {
-  const gBtn = state.appConfig.googleClientId
-    ? `<button type="button" class="btn google-btn" data-action="google-login" style="width:100%;margin-top:12px">
-         <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C41.4 35 44 30 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-         ${esc(t("googleLogin"))}
-       </button>`
-    : "";
   const wBtn = state.appConfig.wechatEnabled
     ? `<button type="button" class="btn wechat-btn" data-action="wechat-login" style="width:100%;margin-top:10px;background:#07C160;color:#fff;border-color:#07C160">
          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 4C5.36 4 2 6.69 2 10c0 1.89 1.08 3.56 2.77 4.66l-.7 2.09 2.44-1.23c.95.27 1.96.42 2.99.42.17 0 .34 0 .51-.02a5.4 5.4 0 0 1-.26-1.67c0-3.26 3.26-5.9 7.25-5.9.3 0 .6.01.9.04C17.26 5.98 13.66 4 9.5 4zM7 7.75a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zm5 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zM14.59 14.16c-3.03 0-5.5 2.02-5.5 4.5s2.47 4.5 5.5 4.5c.95 0 1.86-.2 2.67-.56l2.23 1.13-.63-1.9c1.55-1 2.55-2.5 2.55-4.17 0-2.48-2.47-4.5-5.5-4.5z"/></svg>
@@ -600,7 +593,6 @@ function authLoginFields() {
       <button type="button" class="pw-eye" data-eye-for="auth-password">${eyeIcon(false)}</button>
     </div>
     <button class="btn btn-primary" id="auth-submit" style="width:100%;margin-top:16px;padding:13px">${esc(t("loginSubmitBtn"))}</button>
-    ${gBtn}
     ${wBtn}
     <button class="btn btn-ghost btn-sm" id="auth-token-mode" style="width:100%;margin-top:10px">${esc(t("tokenMode"))}</button>`;
 }
@@ -759,10 +751,6 @@ function bindAuth(layer) {
     if (tokenMode) {
       if (mode === "token") switchMode("login");
       else switchMode("token");
-    }
-    if (e.target.closest('[data-action="google-login"]')) {
-      location.href = "https://api.nebulavessel.com/api/auth/google";
-      return;
     }
     if (e.target.closest('[data-action="wechat-login"]')) {
       location.href = "https://api.nebulavessel.com/api/auth/wechat";

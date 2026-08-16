@@ -21,7 +21,6 @@ import { createTicket, adminTickets, adminTicketAction } from "./tickets.js";
 import { drawFortune } from "./fortune.js";
 import { createChat, listChats, getChat, deleteChat, chatStreamResponse, renameChat, summarizeChatTitle } from "./chat.js";
 import { addNotification, listNotifications, markAllRead } from "./notify.js";
-import { googleEnabled, googleAuthUrl, handleGoogleCallback } from "./google-auth.js";
 import { wechatEnabled, wechatAuthUrl, handleWechatCallback } from "./wechat-auth.js";
 import { requestVerificationCode, verifyCode, emailVerificationRequired, verifyTurnstile } from "./email.js";
 
@@ -301,18 +300,6 @@ export default {
       }
       return withCors(json({ error: "口令错误" }, 401), request, env);
     }
-    if (request.method === "GET" && path === "/api/auth/google") {
-      if (!googleEnabled(env)) return withCors(json({ error: "Google 登录未配置" }, 404), request, env);
-      const state = crypto.randomUUID();
-      return Response.redirect(googleAuthUrl(env, state), 302);
-    }
-    if (request.method === "GET" && path === "/api/auth/google/callback") {
-      const result = await handleGoogleCallback(env, url);
-      if (result.error) {
-        return Response.redirect(`https://www.nebulavessel.com/#/google-auth?error=${encodeURIComponent(result.error)}`, 302);
-      }
-      return Response.redirect(result.redirect, 302);
-    }
     if (request.method === "GET" && path === "/api/auth/wechat") {
       if (!wechatEnabled(env)) return withCors(json({ error: "微信登录未配置" }, 404), request, env);
       const state = crypto.randomUUID();
@@ -336,7 +323,6 @@ export default {
       return withCors(json({
         emailVerification: emailVerificationRequired(env),
         turnstileSiteKey: env.TURNSTILE_SITE_KEY || "",
-        googleClientId: env.GOOGLE_CLIENT_ID || "",
         wechatEnabled: wechatEnabled(env),
       }), request, env);
     }

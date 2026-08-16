@@ -149,8 +149,8 @@ export const SCHOOL2_EXTRA = {
 };
 
 export const GOOGLE_EXTRA = {
-  zh: { googleLogin: "使用 Google 登录", wechatLogin: "使用微信登录" },
-  en: { googleLogin: "Sign in with Google", wechatLogin: "Sign in with WeChat" }
+  zh: { wechatLogin: "使用微信登录" },
+  en: { wechatLogin: "Sign in with WeChat" }
 };
 
 export const CHAT3_EXTRA = {
@@ -169,8 +169,8 @@ export const CHAT4_EXTRA = {
 };
 
 export const GOOGLE2_EXTRA = {
-  zh: { googleLoginFail: "Google 登录失败", wechatLoginFail: "微信登录失败" },
-  en: { googleLoginFail: "Google sign-in failed", wechatLoginFail: "WeChat sign-in failed" }
+  zh: { wechatLoginFail: "微信登录失败" },
+  en: { wechatLoginFail: "WeChat sign-in failed" }
 };
 
 export const NOTIF_EXTRA = {

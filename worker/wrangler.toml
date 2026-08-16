@@ -37,7 +37,6 @@ OWNER = "nebula-user"
 ADMIN_EMAILS = "sujunyue_sam@outlook.com"
 # Cloudflare Turnstile 人机验证（在 Cloudflare Dashboard → Turnstile 创建 widget 后填入 site key；secret 用 secret put TURNSTILE_SECRET_KEY）
 WECHAT_APP_ID = ""
-GOOGLE_CLIENT_ID = "199197353131-qf4ctqrlfr7d0s05gmhtddmeh2atf3nk.apps.googleusercontent.com"
 TURNSTILE_SITE_KEY = "0x4AAAAAAEQ8BwRaAqeHO5Pl"
 # 邮箱验证码开关：Resend 域名验证完成后改为 "1"（当前 0 = 跳过验证码）
 EMAIL_VERIFY_ENABLED = "1"
